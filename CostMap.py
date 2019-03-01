@@ -5,13 +5,17 @@ Created on Wed Feb 27 15:04:42 2019
 @author: Samuel Gibbs
 """
 
-import cv2        
+import cv2  
+import cv2.aruco as aruco
+
+import math      
+import numpy as np
 
 class map_capture():
     def __init__(self):
         self.video = cv2.VideoCapture(0)
-        self.video.set(cv2.CAP_PROP_BUFFERSIZE, 0);
-#        self.video.set(cv2.CAP_PROP_AUTOFOCUS, 0)
+        self.video.set(cv2.CAP_PROP_BUFFERSIZE, 1);
+        self.video.set(cv2.CAP_PROP_AUTOFOCUS, 0)
 #        self.video.set(cv2.CAP_PROP_FRAME_WIDTH, 1280) # set the resolution - 640,480
 #        self.video.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
         
@@ -19,13 +23,75 @@ class map_capture():
         self.flat_list = []
         ok, frame = self.video.read()
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        retval, self.thresh = cv2.threshold(gray,200,255,cv2.THRESH_BINARY)
+        retval, thresh = cv2.threshold(gray,200,255,cv2.THRESH_BINARY)
        
-        return ((self.thresh.flatten()/2.55).astype(int))
+        return ((thresh.flatten()/2.55).astype(int))
         
+    def get_transform(self):
+        ret, aruco_frame = self.video.read()
+        #print(frame.shape) #480x640
+        # Our operations on the frame come here
+        gray = cv2.cvtColor(aruco_frame, cv2.COLOR_BGR2GRAY)
+        #retval, gray = cv2.threshold(gray,200,255,cv2.THRESH_BINARY)
+        gray = cv2.adaptiveThreshold(gray,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,11,2)
+    
+        aruco_dict = aruco.Dictionary_get(aruco.DICT_6X6_250)
+        parameters =  aruco.DetectorParameters_create()
+     
+        
+        #lists of ids and the corners beloning to each ids
+        corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
+        #print(corners)
+        
+        aruco_frame = aruco.drawDetectedMarkers(aruco_frame, corners,ids,(255,255,0))
+        cameraMatrix = np.array([[1.3953673275755928e+03, 0, 9.9285445205853750e+02], [0,1.3880458574466945e+03, 5.3905119245877574e+02],[ 0., 0., 1.]])
+        distCoeffs = np.array([5.7392039180004371e-02, -3.4983260309560962e-02,-2.5933903577082485e-03, 3.4269688895033714e-03,-1.8891849772162170e-01 ])
+        if np.all(ids != None):
+            for i in range(0,int(ids.size)):
+                
+                rvec, tvec,_ = aruco.estimatePoseSingleMarkers(corners[i], 0.05, cameraMatrix, distCoeffs) #Estimate pose of each marker and return the values rvet and tvec---different from camera coefficients
+                #(rvec-tvec).any() # get rid of that nasty numpy value array error
+        
+        
+                aruco.drawAxis(aruco_frame, cameraMatrix, distCoeffs, rvec[0], tvec[0], 0.1) #Draw Axis
+                aruco.drawDetectedMarkers(aruco_frame, corners) #Draw A square around the markers
+                x_coor = (corners[i][0][0][0] + corners[i][0][1][0] + corners[i][0][2][0] + corners[i][0][3][0]) / 4
+                y_coor = (corners[i][0][0][1] + corners[i][0][1][1] + corners[i][0][2][1] + corners[i][0][3][1]) / 4
+                
+                rotM = np.zeros(shape=(3,3))
+                cv2.Rodrigues(rvec[i-1  ], rotM, jacobian = 0)
+                R = rotM
+                sy = math.sqrt(R[0,0] * R[0,0] +  R[1,0] * R[1,0])
+         
+                singular = sy < 1e-6
+             
+                if  not singular :
+                    x = math.atan2(R[2,1] , R[2,2])
+                    y = math.atan2(-R[2,0], sy)
+                    z = math.atan2(R[1,0], R[0,0])
+                else :
+                    x = math.atan2(-R[1,2], R[1,1])
+                    y = math.atan2(-R[2,0], sy)
+                    z = 0
+             
+                print(np.array([x, y, z]))
+                
+                #print(rotM)
+        
+                ###### DRAW ID #####
+                #cv2.putText(frame, str(x) + "," + str(y), (int(x)+20,int(y)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0),2,cv2.LINE_AA)
+                cv2.putText(aruco_frame, str((z/math.pi)*180), (int(x_coor)+20,int(y_coor)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0),2,cv2.LINE_AA)
+                # Display the resulting frame
+                #return angle, x , y
+                return (z,x_coor,y_coor)
+        #cv2.imshow('Aruco',aruco_frame)
+
+                
         
     def show_frame(self):
-        cv2.imshow('costmap',self.thresh)
+        #cv2.imshow('costmap',self.thresh)
+        #cv2.imshow('Aruco',self.aruco_frame)
+        print("show frame")
         
     def stop(self):
         cv2.destroyAllWindows()
@@ -36,7 +102,8 @@ if __name__ == '__main__':
     
     while 1:
         map.get_new_frame()
-        map.show_frame()
+        print(map.get_transform())
+        #map.show_frame()
         k = cv2.waitKey(30) & 0xff
         #Press escape to close program and take a picture
         if k == 27 :
