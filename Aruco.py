@@ -19,6 +19,8 @@ import cv2.aruco as aruco
 import math
 #help(cv2.aruco)
  
+
+
 cv_file = cv2.FileStorage(r"C:\Users/Samuel Gibbs/Documents/.Uni Year3/ACS330 - Group Project/OpenCV/Python/Camera Calibration/parameters.yaml", cv2.FILE_STORAGE_READ)
 
 # Note : we also have to specify the type to retrieve otherwise we only get a
