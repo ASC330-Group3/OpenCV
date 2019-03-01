@@ -11,13 +11,21 @@ class map_capture():
     def __init__(self):
         self.video = cv2.VideoCapture(1)
         self.video.set(cv2.CAP_PROP_AUTOFOCUS, 0)
-        self.video.set(cv2.CAP_PROP_FRAME_WIDTH, 1920) # set the resolution - 640,480
-        self.video.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+        self.video.set(cv2.CAP_PROP_FRAME_WIDTH, 1280) # set the resolution - 640,480
+        self.video.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
         
     def get_new_frame(self):
+        self.flat_list = []
         ok, frame = self.video.read()
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         retval, self.thresh = cv2.threshold(gray,200,255,cv2.THRESH_BINARY)
+        for sublist in self.thresh:
+            for item in sublist:
+                if item == 255:
+                    self.flat_list.append(100)
+                else:
+                    self.flat_list.append(0)
+        
         
     def show_frame(self):
         cv2.imshow('costmap',self.thresh)
