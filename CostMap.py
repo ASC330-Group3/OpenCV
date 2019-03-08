@@ -16,6 +16,7 @@ class map_capture():
         self.video = cv2.VideoCapture(1)
         self.video.set(cv2.CAP_PROP_BUFFERSIZE, 1);
         self.video.set(cv2.CAP_PROP_AUTOFOCUS, 0)
+        ret, self.aruco_frame = self.video.read()
 #        self.video.set(cv2.CAP_PROP_FRAME_WIDTH, 1280) # set the resolution - 640,480
 #        self.video.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
         
@@ -30,9 +31,6 @@ class map_capture():
         return ((thresh.flatten()/2.55).astype(int))
     
     def get_transform(self):
-        
-        #Width and height of platform in mm
-   
         
         #aruco width and height
         aruco_dimensions = 100
@@ -66,8 +64,7 @@ class map_capture():
                 aruco.drawDetectedMarkers(self.aruco_frame, corners) #Draw A square around the markers
                 aruco_x_coor = (corners[i][0][0][0] + corners[i][0][1][0] + corners[i][0][2][0] + corners[i][0][3][0]) / 4
                 aruco_y_coor = (corners[i][0][0][1] + corners[i][0][1][1] + corners[i][0][2][1] + corners[i][0][3][1]) / 4
-                #platform width = 214mm 
-                #^-- with wheels = 360mm
+         
                 
                 #convert arena coordinates to mm
                 scaling_factor = (math.sqrt((abs(corners[i][0][0][0] - corners[i][0][1][0]))**2+(abs(corners[i][0][0][1] - corners[i][0][1][1]))**2))/aruco_dimensions
