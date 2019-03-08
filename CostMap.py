@@ -141,7 +141,13 @@ class map_capture():
                 return (transform_dict)
         else:
             found = 0
-            return (0,0,0,found)
+             transform_dict = {
+                        "state" : found,
+                        "x" : 0,
+                        "y" : 0,
+                        "angle" : 0
+                        }
+            return (transform_dict)
             
 
                 
