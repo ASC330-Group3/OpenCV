@@ -124,8 +124,8 @@ class map_capture():
                 angle = -z#angle_offset
                 x0 = platform_center_x
                 y0 = platform_center_y
-                height = 370*scaling_factor
-                width = 410*scaling_factor
+                height = 360*scaling_factor
+                width = 420*scaling_factor
                 b = math.cos(angle) * 0.6
                 a = math.sin(angle) * 0.6
                 pt0 = (int(x0 - a * height - b * width), int(y0 + b * height - a * width))
@@ -148,7 +148,15 @@ class map_capture():
                 # Display the resulting frame
                 #return angle, x , y
                 found = 1
-                return (z,platform_center_x,platform_center_y,found)
+                
+                transform_dict = {
+                        "state" : found,
+                        "x" : platform_center_x,
+                        "y" : platform_center_y,
+                        "angle" : z
+                        }
+                
+                return (transform_dict)
         else:
             found = 0
             return (0,0,0,found)
