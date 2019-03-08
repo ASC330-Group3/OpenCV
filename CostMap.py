@@ -27,11 +27,27 @@ class map_capture():
        
         return ((thresh.flatten()/2.55).astype(int))
         
+    def draw_angled_rec(x0, y0, width, height, angle, img):
+
+        
+        b = math.cos(angle) * 0.5
+        a = math.sin(angle) * 0.5
+        pt0 = (int(x0 - a * height - b * width), int(y0 + b * height - a * width))
+        pt1 = (int(x0 + a * height - b * width), int(y0 - b * height - a * width))
+        pt2 = (int(2 * x0 - pt0[0]), int(2 * y0 - pt0[1]))
+        pt3 = (int(2 * x0 - pt1[0]), int(2 * y0 - pt1[1]))
+    
+        cv2.line(img, pt0, pt1, (255, 255, 255), 3)
+        cv2.line(img, pt1, pt2, (255, 255, 255), 3)
+        cv2.line(img, pt2, pt3, (255, 255, 255), 3)
+        cv2.line(img, pt3, pt0, (255, 255, 255), 3)
+        
+        return(img)
+    
     def get_transform(self):
         
         #Width and height of platform in mm
-        object_width = 360
-        object_height = 400
+   
         
         #aruco width and height
         aruco_dimensions = 100
@@ -63,11 +79,13 @@ class map_capture():
         
                 aruco.drawAxis(self.aruco_frame, cameraMatrix, distCoeffs, rvec[0], tvec[0], 0.1) #Draw Axis
                 aruco.drawDetectedMarkers(self.aruco_frame, corners) #Draw A square around the markers
-                x_coor = (corners[i][0][0][0] + corners[i][0][1][0] + corners[i][0][2][0] + corners[i][0][3][0]) / 4
-                y_coor = (corners[i][0][0][1] + corners[i][0][1][1] + corners[i][0][2][1] + corners[i][0][3][1]) / 4
+                aruco_x_coor = (corners[i][0][0][0] + corners[i][0][1][0] + corners[i][0][2][0] + corners[i][0][3][0]) / 4
+                aruco_y_coor = (corners[i][0][0][1] + corners[i][0][1][1] + corners[i][0][2][1] + corners[i][0][3][1]) / 4
+                #platform width = 214mm 
+                #^-- with wheels = 360mm
                 
-                
-                
+                #convert arena coordinates to mm
+                scaling_factor = (math.sqrt((abs(corners[i][0][0][0] - corners[i][0][1][0]))**2+(abs(corners[i][0][0][1] - corners[i][0][1][1]))**2))/100
                 #pts = np.array([[corners[i][0][0][0],(corners[i][0][0][1]]), [corners[i][0][1][0],corners[i][0][1][1]] , [corners[i][0][2][0],corners[i][0][2][1]] , [corners[i][0][3][0],corners[i][0][3][1]]], np.int32)
                 #pts = pts.reshape((-1,1,2))
                 #cv2.polylines(self.aruco_frame,[pts],True,(0,255,255))
@@ -88,16 +106,49 @@ class map_capture():
                     y = math.atan2(-R[2,0], sy)
                     z = 0
              
-                
-                #print(rotM)
+                z = (-z)
         
+                distance_aruco_to_platform_centre = math.sqrt((((217/2)-50)*scaling_factor)**2 + (((407/2)-50)*scaling_factor)**2)
+                angle_offset = math.atan(((407/2)*scaling_factor)/((217/2)*scaling_factor)) - (math.pi)/2
+                
+                platform_center_x = int(aruco_x_coor + distance_aruco_to_platform_centre*math.cos(z-angle_offset))
+                platform_center_y = int(aruco_y_coor - distance_aruco_to_platform_centre*math.sin(z-angle_offset))
+                
+                #print(transformation_matrix)
+                print(platform_center_x,platform_center_y)
+                
+                cv2.circle(self.aruco_frame,(platform_center_x,platform_center_y), 1, (0,0,255), -1)
+                
+                
+                #Draw rotated rectangle
+                angle = -z#angle_offset
+                x0 = platform_center_x
+                y0 = platform_center_y
+                height = 370*scaling_factor
+                width = 410*scaling_factor
+                b = math.cos(angle) * 0.6
+                a = math.sin(angle) * 0.6
+                pt0 = (int(x0 - a * height - b * width), int(y0 + b * height - a * width))
+                pt1 = (int(x0 + a * height - b * width), int(y0 - b * height - a * width))
+                pt2 = (int(2 * x0 - pt0[0]), int(2 * y0 - pt0[1]))
+                pt3 = (int(2 * x0 - pt1[0]), int(2 * y0 - pt1[1]))
+            
+                cv2.line(self.aruco_frame, pt0, pt1, (255, 255, 255), 1)
+                cv2.line(self.aruco_frame, pt1, pt2, (255, 255, 255), 1)
+                cv2.line(self.aruco_frame, pt2, pt3, (255, 255, 255), 1)
+                cv2.line(self.aruco_frame, pt3, pt0, (255, 255, 255), 1)
+                
+                rect_corners = np.array([[pt0],[pt1],[pt2],[pt3]])
+                
+                cv2.fillPoly(self.aruco_frame,[rect_corners],(0,0,0))
+               
                 ###### DRAW ID #####
                 #cv2.putText(frame, str(x) + "," + str(y), (int(x)+20,int(y)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0),2,cv2.LINE_AA)
                 #cv2.putText(self.aruco_frame, str((z/math.pi)*180), (int(x_coor)+20,int(y_coor)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0),2,cv2.LINE_AA)
                 # Display the resulting frame
                 #return angle, x , y
                 found = 1
-                return (z,x_coor,y_coor,found)
+                return (z,platform_center_x,platform_center_y,found)
         else:
             found = 0
             return (0,0,0,found)
