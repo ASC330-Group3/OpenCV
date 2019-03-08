@@ -21,9 +21,11 @@ class map_capture():
         
     def get_new_frame(self):
         self.flat_list = []
-        ok, frame = self.video.read()
+        #ok, frame = self.video.read()
+        frame = self.aruco_frame
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         retval, thresh = cv2.threshold(gray,200,255,cv2.THRESH_BINARY)
+        cv2.imshow("CostMap",thresh)
        
         return ((thresh.flatten()/2.55).astype(int))
         
@@ -85,7 +87,7 @@ class map_capture():
                 #^-- with wheels = 360mm
                 
                 #convert arena coordinates to mm
-                scaling_factor = (math.sqrt((abs(corners[i][0][0][0] - corners[i][0][1][0]))**2+(abs(corners[i][0][0][1] - corners[i][0][1][1]))**2))/100
+                scaling_factor = (math.sqrt((abs(corners[i][0][0][0] - corners[i][0][1][0]))**2+(abs(corners[i][0][0][1] - corners[i][0][1][1]))**2))/aruco_dimensions
                 #pts = np.array([[corners[i][0][0][0],(corners[i][0][0][1]]), [corners[i][0][1][0],corners[i][0][1][1]] , [corners[i][0][2][0],corners[i][0][2][1]] , [corners[i][0][3][0],corners[i][0][3][1]]], np.int32)
                 #pts = pts.reshape((-1,1,2))
                 #cv2.polylines(self.aruco_frame,[pts],True,(0,255,255))
@@ -124,10 +126,10 @@ class map_capture():
                 angle = -z#angle_offset
                 x0 = platform_center_x
                 y0 = platform_center_y
-                height = 360*scaling_factor
+                height = 370*scaling_factor
                 width = 420*scaling_factor
-                b = math.cos(angle) * 0.6
-                a = math.sin(angle) * 0.6
+                b = math.cos(angle) * 0.7
+                a = math.sin(angle) * 0.7
                 pt0 = (int(x0 - a * height - b * width), int(y0 + b * height - a * width))
                 pt1 = (int(x0 + a * height - b * width), int(y0 - b * height - a * width))
                 pt2 = (int(2 * x0 - pt0[0]), int(2 * y0 - pt0[1]))
@@ -177,8 +179,9 @@ if __name__ == '__main__':
     map = map_capture()
     
     while 1:
-        #map.get_new_frame()
+       
         map.get_transform()
+        map.get_new_frame()
         map.show_frame()
         k = cv2.waitKey(1) & 0xff
         #Press escape to close program and take a picture
