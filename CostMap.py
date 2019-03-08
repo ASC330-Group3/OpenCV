@@ -28,23 +28,6 @@ class map_capture():
         cv2.imshow("CostMap",thresh)
        
         return ((thresh.flatten()/2.55).astype(int))
-        
-    def draw_angled_rec(x0, y0, width, height, angle, img):
-
-        
-        b = math.cos(angle) * 0.5
-        a = math.sin(angle) * 0.5
-        pt0 = (int(x0 - a * height - b * width), int(y0 + b * height - a * width))
-        pt1 = (int(x0 + a * height - b * width), int(y0 - b * height - a * width))
-        pt2 = (int(2 * x0 - pt0[0]), int(2 * y0 - pt0[1]))
-        pt3 = (int(2 * x0 - pt1[0]), int(2 * y0 - pt1[1]))
-    
-        cv2.line(img, pt0, pt1, (255, 255, 255), 3)
-        cv2.line(img, pt1, pt2, (255, 255, 255), 3)
-        cv2.line(img, pt2, pt3, (255, 255, 255), 3)
-        cv2.line(img, pt3, pt0, (255, 255, 255), 3)
-        
-        return(img)
     
     def get_transform(self):
         
