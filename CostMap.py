@@ -13,9 +13,14 @@ import numpy as np
 
 class map_capture():
     def __init__(self):
-        self.video = cv2.VideoCapture(1)
+        self.video = cv2.VideoCapture(0)
         self.video.set(cv2.CAP_PROP_BUFFERSIZE, 1);
         self.video.set(cv2.CAP_PROP_AUTOFOCUS, 0)
+        width = self.video.get(cv2.CAP_PROP_FRAME_WIDTH)   # float
+        height = self.video.get(cv2.CAP_PROP_FRAME_HEIGHT) # float
+        
+        print(width,height)
+        
         ret, self.aruco_frame = self.video.read()
 #        self.video.set(cv2.CAP_PROP_FRAME_WIDTH, 1280) # set the resolution - 640,480
 #        self.video.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
@@ -26,23 +31,23 @@ class map_capture():
         frame = self.aruco_frame
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         retval, thresh = cv2.threshold(gray,200,255,cv2.THRESH_BINARY)
-        cv2.imshow("CostMap",thresh)
+        #cv2.imshow("CostMap",thresh)
        
         return ((thresh.flatten()/2.55).astype(int))
     
     def get_transform(self):
         
         #aruco width and height
-        aruco_dimensions = 100
+        aruco_dimensions = 80
         
         ret, self.aruco_frame = self.video.read()
         #print(frame.shape) #480x640
         # Our operations on the frame come here
         gray = cv2.cvtColor(self.aruco_frame, cv2.COLOR_BGR2GRAY)
-        #retval, gray = cv2.threshold(gray,200,255,cv2.THRESH_BINARY)
-        gray = cv2.adaptiveThreshold(gray,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,11,2)
+        retval, gray = cv2.threshold(gray,100,255,cv2.THRESH_BINARY)
+      
     
-        aruco_dict = aruco.Dictionary_get(aruco.DICT_6X6_250) 
+        aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_250) 
         parameters =  aruco.DetectorParameters_create()
      
         
@@ -71,7 +76,7 @@ class map_capture():
                 #pts = np.array([[corners[i][0][0][0],(corners[i][0][0][1]]), [corners[i][0][1][0],corners[i][0][1][1]] , [corners[i][0][2][0],corners[i][0][2][1]] , [corners[i][0][3][0],corners[i][0][3][1]]], np.int32)
                 #pts = pts.reshape((-1,1,2))
                 #cv2.polylines(self.aruco_frame,[pts],True,(0,255,255))
-                
+                #print(scaling_factor)
                 rotM = np.zeros(shape=(3,3))
                 cv2.Rodrigues(rvec[i-1  ], rotM, jacobian = 0)
                 R = rotM
@@ -96,8 +101,8 @@ class map_capture():
                 platform_center_x = int(aruco_x_coor + distance_aruco_to_platform_centre*math.cos(z-angle_offset))
                 platform_center_y = int(aruco_y_coor - distance_aruco_to_platform_centre*math.sin(z-angle_offset))
                 
-                #print(transformation_matrix)
-                print(platform_center_x,platform_center_y)
+                
+                #print(platform_center_x,platform_center_y)
                 
                 cv2.circle(self.aruco_frame,(platform_center_x,platform_center_y), 1, (0,0,255), -1)
                 
@@ -141,7 +146,7 @@ class map_capture():
                 return (transform_dict)
         else:
             found = 0
-             transform_dict = {
+            transform_dict = {
                         "state" : found,
                         "x" : 0,
                         "y" : 0,
