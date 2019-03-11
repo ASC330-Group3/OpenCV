@@ -45,7 +45,7 @@ class map_capture():
         #print(frame.shape) #480x640
         # Our operations on the frame come here
         gray = cv2.cvtColor(self.aruco_frame, cv2.COLOR_BGR2GRAY)
-        retval, gray = cv2.threshold(gray,100,255,cv2.THRESH_BINARY)
+        retval, gray = cv2.threshold(gray,250,255,cv2.THRESH_BINARY)
       
     
         aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_250) 
@@ -168,7 +168,7 @@ class map_capture():
         self.video.release()
         
 if __name__ == '__main__':
-    map = map_capture(0)
+    map = map_capture(1)
     
     while 1:
        
