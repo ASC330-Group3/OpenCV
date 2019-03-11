@@ -12,8 +12,8 @@ import math
 import numpy as np
 
 class map_capture():
-    def __init__(self):
-        self.video = cv2.VideoCapture(0)
+    def __init__(self,camera_option):
+        self.video = cv2.VideoCapture(camera_option)
         self.video.set(cv2.CAP_PROP_BUFFERSIZE, 1);
         self.video.set(cv2.CAP_PROP_AUTOFOCUS, 0)
         width = self.video.get(cv2.CAP_PROP_FRAME_WIDTH)   # float
@@ -24,6 +24,7 @@ class map_capture():
         ret, self.aruco_frame = self.video.read()
 #        self.video.set(cv2.CAP_PROP_FRAME_WIDTH, 1280) # set the resolution - 640,480
 #        self.video.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+        
         
     def get_new_frame(self):
         self.flat_list = []
@@ -167,7 +168,7 @@ class map_capture():
         self.video.release()
         
 if __name__ == '__main__':
-    map = map_capture()
+    map = map_capture(0)
     
     while 1:
        
