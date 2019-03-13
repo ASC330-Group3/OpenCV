@@ -30,10 +30,14 @@ class map_capture():
         self.flat_list = []
         #ok, frame = self.video.read()
         frame = self.aruco_frame
+        
+        frame = cv2.flip(frame, 1)
+     
+        
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         retval, thresh = cv2.threshold(gray,200,255,cv2.THRESH_BINARY)
         #cv2.imshow("CostMap",thresh)
-       
+      
         return ((thresh.flatten()/2.55).astype(int))
     
     def get_transform(self):
@@ -168,7 +172,7 @@ class map_capture():
         self.video.release()
         
 if __name__ == '__main__':
-    map = map_capture(1)
+    map = map_capture(0)
     
     while 1:
        
