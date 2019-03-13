@@ -31,9 +31,9 @@ class map_capture():
         #ok, frame = self.video.read()
         frame = self.aruco_frame
         
-        frame = cv2.flip(frame, 1)
+        frame = cv2.flip(frame, -1)
      
-        
+        cv2.imshow('flip',frame)
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         retval, thresh = cv2.threshold(gray,200,255,cv2.THRESH_BINARY)
         #cv2.imshow("CostMap",thresh)
