@@ -25,10 +25,12 @@ class map_capture():
 #        self.video.set(cv2.CAP_PROP_FRAME_WIDTH, 1280) # set the resolution - 640,480
 #        self.video.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
         
+    def get_webcam_feed(self):
+        return self.webcam_feed
         
     def get_new_frame(self):
         self.flat_list = []
-        #ok, frame = self.video.read()
+        
         frame = self.aruco_frame
         
         frame = cv2.flip(frame, 0)
@@ -45,7 +47,8 @@ class map_capture():
         #aruco width and height
         aruco_dimensions = 80
         
-        ret, self.aruco_frame = self.video.read()
+        ret, self.webcam_feed = self.video.read()
+        self.aruco_frame = self.webcam_feed
         #print(frame.shape) #480x640
         # Our operations on the frame come here
         gray = cv2.cvtColor(self.aruco_frame, cv2.COLOR_BGR2GRAY)
