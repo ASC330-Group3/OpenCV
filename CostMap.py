@@ -16,10 +16,10 @@ class map_capture():
         self.video = cv2.VideoCapture(camera_option)
         self.video.set(cv2.CAP_PROP_BUFFERSIZE, 1);
         self.video.set(cv2.CAP_PROP_AUTOFOCUS, 0)
-        width = self.video.get(cv2.CAP_PROP_FRAME_WIDTH)   # float
+        self.width = self.video.get(cv2.CAP_PROP_FRAME_WIDTH)   # float
         self.height = self.video.get(cv2.CAP_PROP_FRAME_HEIGHT) # float
         
-        print(width,height)
+
         
         ret, self.aruco_frame = self.video.read()
 #        self.video.set(cv2.CAP_PROP_FRAME_WIDTH, 1280) # set the resolution - 640,480
