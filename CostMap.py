@@ -17,7 +17,7 @@ class map_capture():
         self.video.set(cv2.CAP_PROP_BUFFERSIZE, 1);
         self.video.set(cv2.CAP_PROP_AUTOFOCUS, 0)
         width = self.video.get(cv2.CAP_PROP_FRAME_WIDTH)   # float
-        height = self.video.get(cv2.CAP_PROP_FRAME_HEIGHT) # float
+        self.height = self.video.get(cv2.CAP_PROP_FRAME_HEIGHT) # float
         
         print(width,height)
         
@@ -33,7 +33,7 @@ class map_capture():
         
         frame = cv2.flip(frame, 0)
      
-        #cv2.imshow('flip',frame)
+        cv2.imshow('flip',frame)
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         retval, thresh = cv2.threshold(gray,200,255,cv2.THRESH_BINARY)
         #cv2.imshow("CostMap",thresh)
@@ -141,6 +141,9 @@ class map_capture():
                 #return angle, x , y
                 found = 1
                 
+                #The costmap image is flipped along the x -axis for screen coordinates:
+                platform_center_y = self.height - platform_center_y
+                
                 transform_dict = {
                         "state" : found,
                         "x" : platform_center_x,
@@ -172,7 +175,7 @@ class map_capture():
         self.video.release()
         
 if __name__ == '__main__':
-    map = map_capture(0)
+    map = map_capture(1)
     
     while 1:
        
