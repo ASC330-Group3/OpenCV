@@ -69,9 +69,7 @@ class map_capture():
         if np.all(ids != None):
             for i in range(0,int(ids.size)):
                 
-                if True:
-                    print("detected")
-                else:
+                if ids[0][i] == 49:
                     
                 
                     rvec, tvec,_ = aruco.estimatePoseSingleMarkers(corners[i], 0.05, cameraMatrix, distCoeffs) #Estimate pose of each marker and return the values rvet and tvec---different from camera coefficients
@@ -149,7 +147,7 @@ class map_capture():
                             "y" : platform_center_y,
                             "angle" : z
                             }
-                    
+                
                     return (transform_dict)
         else:
             found = 0
