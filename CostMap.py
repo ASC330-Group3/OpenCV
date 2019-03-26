@@ -15,12 +15,15 @@ class map_capture():
     def __init__(self,camera_option):
         self.video = cv2.VideoCapture(camera_option)
         self.video.set(cv2.CAP_PROP_BUFFERSIZE, 1);
-        self.video.set(cv2.CAP_PROP_AUTOFOCUS, 0)
+        self.video.set(cv2.CAP_PROP_AUTOFOCUS, 1)
         self.width = self.video.get(cv2.CAP_PROP_FRAME_WIDTH)   # float
         self.height = self.video.get(cv2.CAP_PROP_FRAME_HEIGHT) # float
+        self.video.set(cv2.CAP_PROP_BRIGHTNESS,0)
+        self.video.set(cv2.CAP_PROP_CONTRAST,0)
+   
+        self.video.set(cv2.CAP_PROP_SHARPNESS,255)
         
-
-        
+                       
         ret, self.aruco_frame = self.video.read()
 #        self.video.set(cv2.CAP_PROP_FRAME_WIDTH, 1280) # set the resolution - 640,480
 #        self.video.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
@@ -42,29 +45,23 @@ class map_capture():
       
         return ((thresh.flatten()/2.55).astype(int))
     
-    def get_transform(self,thresh_value):
-        
-        #aruco width and height
+    def __get_aruco_parameters(self):
         aruco_dimensions = 80
+        aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_250) 
+        parameters =  aruco.DetectorParameters_create()
+        return (aruco_dict,parameters,aruco_dimensions)
+    
+    def get_transform(self):
+       
+        aruco_dict,parameters,aruco_dimensions = self.__get_aruco_parameters()
         
         ret, self.webcam_feed = self.video.read()
         self.aruco_frame = self.webcam_feed
         #print(frame.shape) #480x640
         # Our operations on the frame come here
-        gray = cv2.cvtColor(self.aruco_frame, cv2.COLOR_BGR2GRAY)
-        
-        #thresh_value = cv2.getTrackbarPos('T','Thresh')
-        
-        retval, gray = cv2.threshold(gray,thresh_value,255,cv2.THRESH_BINARY)
-        #cv2.imshow('Thresh',gray)
-    
-        aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_250) 
-        parameters =  aruco.DetectorParameters_create()
-     
-        
+
         #lists of ids and the corners beloning to each ids
-        corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
-        #print(corners)
+        corners, ids, rejectedImgPoints = aruco.detectMarkers(self.aruco_frame, aruco_dict, parameters=parameters)
         
         self.aruco_frame = aruco.drawDetectedMarkers(self.aruco_frame, corners,ids,(255,255,0))
         cameraMatrix = np.array([[1.3953673275755928e+03, 0, 9.9285445205853750e+02], [0,1.3880458574466945e+03, 5.3905119245877574e+02],[ 0., 0., 1.]])
@@ -72,88 +69,88 @@ class map_capture():
         if np.all(ids != None):
             for i in range(0,int(ids.size)):
                 
-                rvec, tvec,_ = aruco.estimatePoseSingleMarkers(corners[i], 0.05, cameraMatrix, distCoeffs) #Estimate pose of each marker and return the values rvet and tvec---different from camera coefficients
-                #(rvec-tvec).any() # get rid of that nasty numpy value array error
-        
-        
-                aruco.drawAxis(self.aruco_frame, cameraMatrix, distCoeffs, rvec[0], tvec[0], 0.1) #Draw Axis
-                aruco.drawDetectedMarkers(self.aruco_frame, corners) #Draw A square around the markers
-                aruco_x_coor = (corners[i][0][0][0] + corners[i][0][1][0] + corners[i][0][2][0] + corners[i][0][3][0]) / 4
-                aruco_y_coor = (corners[i][0][0][1] + corners[i][0][1][1] + corners[i][0][2][1] + corners[i][0][3][1]) / 4
-         
+                if True:
+                    print("detected")
+                else:
+                    
                 
-                #convert arena coordinates to mm
-                conversion_factor = (math.sqrt((abs(corners[i][0][0][0] - corners[i][0][1][0]))**2+(abs(corners[i][0][0][1] - corners[i][0][1][1]))**2))/aruco_dimensions
-    
-                R = np.zeros(shape=(3,3))
-                cv2.Rodrigues(rvec[i-1  ], R, jacobian = 0)
-                sy = math.sqrt(R[0,0] * R[0,0] +  R[1,0] * R[1,0])
-         
-                singular = sy < 1e-6
-             
-                if  not singular :
-                    x = math.atan2(R[2,1] , R[2,2])
-                    y = math.atan2(-R[2,0], sy)
-                    z = math.atan2(R[1,0], R[0,0])
-                else :
-                    x = math.atan2(-R[1,2], R[1,1])
-                    y = math.atan2(-R[2,0], sy)
-                    z = 0
-             
-                z = (-z)
-        
-                distance_aruco_to_platform_centre = math.sqrt((((217/2)-50)*conversion_factor)**2 + (((407/2)-50)*conversion_factor)**2)
-                angle_offset = math.atan(((407/2)*conversion_factor)/((217/2)*conversion_factor)) - (math.pi)/2
-                
-                platform_center_x = int(aruco_x_coor + distance_aruco_to_platform_centre*math.cos(z-angle_offset))
-                platform_center_y = int(aruco_y_coor - distance_aruco_to_platform_centre*math.sin(z-angle_offset))
-                
-                
-                #print(platform_center_x,platform_center_y)
-                
-                cv2.circle(self.aruco_frame,(platform_center_x,platform_center_y), 1, (0,0,255), -1)
-                
-                
-                #Draw rotated rectangle
-                angle = -z#angle_offset
-                x0 = platform_center_x
-                y0 = platform_center_y
-                height = 370*conversion_factor
-                width = 420*conversion_factor
-                b = math.cos(angle) * 0.7
-                a = math.sin(angle) * 0.7
-                pt0 = (int(x0 - a * height - b * width), int(y0 + b * height - a * width))
-                pt1 = (int(x0 + a * height - b * width), int(y0 - b * height - a * width))
-                pt2 = (int(2 * x0 - pt0[0]), int(2 * y0 - pt0[1]))
-                pt3 = (int(2 * x0 - pt1[0]), int(2 * y0 - pt1[1]))
+                    rvec, tvec,_ = aruco.estimatePoseSingleMarkers(corners[i], 0.05, cameraMatrix, distCoeffs) #Estimate pose of each marker and return the values rvet and tvec---different from camera coefficients
+                    (rvec-tvec).any() # get rid of that nasty numpy value array error
             
-                cv2.line(self.aruco_frame, pt0, pt1, (255, 255, 255), 1)
-                cv2.line(self.aruco_frame, pt1, pt2, (255, 255, 255), 1)
-                cv2.line(self.aruco_frame, pt2, pt3, (255, 255, 255), 1)
-                cv2.line(self.aruco_frame, pt3, pt0, (255, 255, 255), 1)
+            
+                    aruco.drawAxis(self.aruco_frame, cameraMatrix, distCoeffs, rvec[0], tvec[0], 0.1) #Draw Axis
+                    aruco.drawDetectedMarkers(self.aruco_frame, corners) #Draw A square around the markers
+                    aruco_x_coor = (corners[i][0][0][0] + corners[i][0][1][0] + corners[i][0][2][0] + corners[i][0][3][0]) / 4
+                    aruco_y_coor = (corners[i][0][0][1] + corners[i][0][1][1] + corners[i][0][2][1] + corners[i][0][3][1]) / 4
+             
+                    
+                    #convert arena coordinates to mm
+                    conversion_factor = (math.sqrt((abs(corners[i][0][0][0] - corners[i][0][1][0]))**2+(abs(corners[i][0][0][1] - corners[i][0][1][1]))**2))/aruco_dimensions
+        
+                    R = np.zeros(shape=(3,3))
+                    cv2.Rodrigues(rvec[i-1  ], R, jacobian = 0)
+                    sy = math.sqrt(R[0,0] * R[0,0] +  R[1,0] * R[1,0])
+             
+                    singular = sy < 1e-6
+                 
+                    if  not singular :
+                        z = math.atan2(R[1,0], R[0,0])
+                    else :
+                        z = 0
+                 
+                    z = (-z)
+            
+                    distance_aruco_to_platform_centre = math.sqrt((((217/2)-50)*conversion_factor)**2 + (((407/2)-50)*conversion_factor)**2)
+                    angle_offset = math.atan(((407/2)*conversion_factor)/((217/2)*conversion_factor)) - (math.pi)/2
+                    
+                    platform_center_x = int(aruco_x_coor + distance_aruco_to_platform_centre*math.cos(z-angle_offset))
+                    platform_center_y = int(aruco_y_coor - distance_aruco_to_platform_centre*math.sin(z-angle_offset))
+                    
+
+                    
+                    cv2.circle(self.aruco_frame,(platform_center_x,platform_center_y), 1, (0,0,255), -1)
+                    
+                    
+                    #Draw rotated rectangle
+                    angle = -z#angle_offset
+                    x0 = platform_center_x
+                    y0 = platform_center_y
+                    height = 370*conversion_factor
+                    width = 420*conversion_factor
+                    b = math.cos(angle) * 0.7
+                    a = math.sin(angle) * 0.7
+                    pt0 = (int(x0 - a * height - b * width), int(y0 + b * height - a * width))
+                    pt1 = (int(x0 + a * height - b * width), int(y0 - b * height - a * width))
+                    pt2 = (int(2 * x0 - pt0[0]), int(2 * y0 - pt0[1]))
+                    pt3 = (int(2 * x0 - pt1[0]), int(2 * y0 - pt1[1]))
                 
-                rect_corners = np.array([[pt0],[pt1],[pt2],[pt3]])
-                
-                cv2.fillPoly(self.aruco_frame,[rect_corners],(0,0,0))
-               
-                ###### DRAW ID #####
-                #cv2.putText(frame, str(x) + "," + str(y), (int(x)+20,int(y)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0),2,cv2.LINE_AA)
-                #cv2.putText(self.aruco_frame, str((z/math.pi)*180), (int(x_coor)+20,int(y_coor)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0),2,cv2.LINE_AA)
-                # Display the resulting frame
-                #return angle, x , y
-                found = 1
-                
-                #The costmap image is flipped along the x -axis for screen coordinates:
-                platform_center_y = self.height - platform_center_y
-                
-                transform_dict = {
-                        "state" : found,
-                        "x" : platform_center_x,
-                        "y" : platform_center_y,
-                        "angle" : z
-                        }
-                
-                return (transform_dict)
+                    cv2.line(self.aruco_frame, pt0, pt1, (255, 255, 255), 1)
+                    cv2.line(self.aruco_frame, pt1, pt2, (255, 255, 255), 1)
+                    cv2.line(self.aruco_frame, pt2, pt3, (255, 255, 255), 1)
+                    cv2.line(self.aruco_frame, pt3, pt0, (255, 255, 255), 1)
+                    
+                    rect_corners = np.array([[pt0],[pt1],[pt2],[pt3]])
+                    
+                    cv2.fillPoly(self.aruco_frame,[rect_corners],(0,0,0))
+                   
+                    ###### DRAW ID #####
+                    #cv2.putText(frame, str(x) + "," + str(y), (int(x)+20,int(y)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0),2,cv2.LINE_AA)
+                    #cv2.putText(self.aruco_frame, str((z/math.pi)*180), (int(x_coor)+20,int(y_coor)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0),2,cv2.LINE_AA)
+                    # Display the resulting frame
+                    #return angle, x , y
+                    found = 1
+                    
+                    #The costmap image is flipped along the x -axis for screen coordinates:
+                    platform_center_y = self.height - platform_center_y
+                    
+                    transform_dict = {
+                            "state" : found,
+                            "x" : platform_center_x,
+                            "y" : platform_center_y,
+                            "angle" : z
+                            }
+                    
+                    return (transform_dict)
         else:
             found = 0
             transform_dict = {
@@ -176,20 +173,15 @@ class map_capture():
         cv2.destroyAllWindows()
         self.video.release()
         
-    def nothing(self,x):
-        pass    
+
     
-    def generate_trackbars(self):
-        cv2.namedWindow('Thresh')
-        cv2.createTrackbar('T','Thresh',230,255,map.nothing)
+
         
 if __name__ == '__main__':
-    map = map_capture(0)
-    #map.generate_trackbars()
+    map = map_capture(1)
     while 1:
        
-       
-        trans = map.get_transform(253)
+        trans = map.get_transform()
         #print(trans)
         map.get_new_frame()
         map.show_frame()
