@@ -35,14 +35,14 @@ class map_capture():
         
         frame = cv2.flip(frame, 0)
      
-        cv2.imshow('flip',frame)
+        #cv2.imshow('flip',frame)
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         retval, thresh = cv2.threshold(gray,200,255,cv2.THRESH_BINARY)
         #cv2.imshow("CostMap",thresh)
       
         return ((thresh.flatten()/2.55).astype(int))
     
-    def get_transform(self,thresh_value):
+    def get_transform(self):
         
         #aruco width and height
         aruco_dimensions = 80
@@ -52,8 +52,11 @@ class map_capture():
         #print(frame.shape) #480x640
         # Our operations on the frame come here
         gray = cv2.cvtColor(self.aruco_frame, cv2.COLOR_BGR2GRAY)
+        
+        thresh_value = cv2.getTrackbarPos('T','Thresh')
+        
         retval, gray = cv2.threshold(gray,thresh_value,255,cv2.THRESH_BINARY)
-        cv2.imshow('Thesh',gray)
+        cv2.imshow('Thresh',gray)
     
         aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_250) 
         parameters =  aruco.DetectorParameters_create()
@@ -173,13 +176,21 @@ class map_capture():
         cv2.destroyAllWindows()
         self.video.release()
         
+    def nothing(self,x):
+        pass    
+    
+    def generate_trackbars(self):
+        cv2.namedWindow('Thresh')
+        cv2.createTrackbar('T','Thresh',230,255,map.nothing)
+        
 if __name__ == '__main__':
     map = map_capture(0)
-    
+    map.generate_trackbars()
     while 1:
        
-        trans = map.get_transform(230)
-        print(trans)
+       
+        trans = map.get_transform()
+        #print(trans)
         map.get_new_frame()
         map.show_frame()
         k = cv2.waitKey(1) & 0xff
