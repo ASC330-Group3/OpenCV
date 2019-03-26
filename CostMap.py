@@ -80,11 +80,11 @@ class map_capture():
          
                 
                 #convert arena coordinates to mm
-                scaling_factor = (math.sqrt((abs(corners[i][0][0][0] - corners[i][0][1][0]))**2+(abs(corners[i][0][0][1] - corners[i][0][1][1]))**2))/aruco_dimensions
+                conversion_factor = (math.sqrt((abs(corners[i][0][0][0] - corners[i][0][1][0]))**2+(abs(corners[i][0][0][1] - corners[i][0][1][1]))**2))/aruco_dimensions
                 #pts = np.array([[corners[i][0][0][0],(corners[i][0][0][1]]), [corners[i][0][1][0],corners[i][0][1][1]] , [corners[i][0][2][0],corners[i][0][2][1]] , [corners[i][0][3][0],corners[i][0][3][1]]], np.int32)
                 #pts = pts.reshape((-1,1,2))
                 #cv2.polylines(self.aruco_frame,[pts],True,(0,255,255))
-                #print(scaling_factor)
+                #print(conversion_factor)
                 rotM = np.zeros(shape=(3,3))
                 cv2.Rodrigues(rvec[i-1  ], rotM, jacobian = 0)
                 R = rotM
@@ -103,8 +103,8 @@ class map_capture():
              
                 z = (-z)
         
-                distance_aruco_to_platform_centre = math.sqrt((((217/2)-50)*scaling_factor)**2 + (((407/2)-50)*scaling_factor)**2)
-                angle_offset = math.atan(((407/2)*scaling_factor)/((217/2)*scaling_factor)) - (math.pi)/2
+                distance_aruco_to_platform_centre = math.sqrt((((217/2)-50)*conversion_factor)**2 + (((407/2)-50)*conversion_factor)**2)
+                angle_offset = math.atan(((407/2)*conversion_factor)/((217/2)*conversion_factor)) - (math.pi)/2
                 
                 platform_center_x = int(aruco_x_coor + distance_aruco_to_platform_centre*math.cos(z-angle_offset))
                 platform_center_y = int(aruco_y_coor - distance_aruco_to_platform_centre*math.sin(z-angle_offset))
@@ -119,8 +119,8 @@ class map_capture():
                 angle = -z#angle_offset
                 x0 = platform_center_x
                 y0 = platform_center_y
-                height = 370*scaling_factor
-                width = 420*scaling_factor
+                height = 370*conversion_factor
+                width = 420*conversion_factor
                 b = math.cos(angle) * 0.7
                 a = math.sin(angle) * 0.7
                 pt0 = (int(x0 - a * height - b * width), int(y0 + b * height - a * width))
@@ -178,7 +178,7 @@ class map_capture():
         self.video.release()
         
 if __name__ == '__main__':
-    map = map_capture(1)
+    map = map_capture(0)
     
     while 1:
        
