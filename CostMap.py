@@ -42,7 +42,7 @@ class map_capture():
       
         return ((thresh.flatten()/2.55).astype(int))
     
-    def get_transform(self):
+    def get_transform(self,thresh_value):
         
         #aruco width and height
         aruco_dimensions = 80
@@ -53,7 +53,7 @@ class map_capture():
         # Our operations on the frame come here
         gray = cv2.cvtColor(self.aruco_frame, cv2.COLOR_BGR2GRAY)
         
-        thresh_value = cv2.getTrackbarPos('T','Thresh')
+        #thresh_value = cv2.getTrackbarPos('T','Thresh')
         
         retval, gray = cv2.threshold(gray,thresh_value,255,cv2.THRESH_BINARY)
         cv2.imshow('Thresh',gray)
@@ -185,11 +185,11 @@ class map_capture():
         
 if __name__ == '__main__':
     map = map_capture(0)
-    map.generate_trackbars()
+    #map.generate_trackbars()
     while 1:
        
        
-        trans = map.get_transform()
+        trans = map.get_transform(253)
         #print(trans)
         map.get_new_frame()
         map.show_frame()
