@@ -56,7 +56,7 @@ class map_capture():
         #thresh_value = cv2.getTrackbarPos('T','Thresh')
         
         retval, gray = cv2.threshold(gray,thresh_value,255,cv2.THRESH_BINARY)
-        cv2.imshow('Thresh',gray)
+        #cv2.imshow('Thresh',gray)
     
         aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_250) 
         parameters =  aruco.DetectorParameters_create()
