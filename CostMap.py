@@ -42,7 +42,7 @@ class map_capture():
       
         return ((thresh.flatten()/2.55).astype(int))
     
-    def get_transform(self):
+    def get_transform(self,thresh_value):
         
         #aruco width and height
         aruco_dimensions = 80
@@ -52,8 +52,8 @@ class map_capture():
         #print(frame.shape) #480x640
         # Our operations on the frame come here
         gray = cv2.cvtColor(self.aruco_frame, cv2.COLOR_BGR2GRAY)
-        retval, gray = cv2.threshold(gray,250,255,cv2.THRESH_BINARY)
-      
+        retval, gray = cv2.threshold(gray,thresh_value,255,cv2.THRESH_BINARY)
+        cv2.imshow('Thesh',gray)
     
         aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_250) 
         parameters =  aruco.DetectorParameters_create()
@@ -81,13 +81,9 @@ class map_capture():
                 
                 #convert arena coordinates to mm
                 conversion_factor = (math.sqrt((abs(corners[i][0][0][0] - corners[i][0][1][0]))**2+(abs(corners[i][0][0][1] - corners[i][0][1][1]))**2))/aruco_dimensions
-                #pts = np.array([[corners[i][0][0][0],(corners[i][0][0][1]]), [corners[i][0][1][0],corners[i][0][1][1]] , [corners[i][0][2][0],corners[i][0][2][1]] , [corners[i][0][3][0],corners[i][0][3][1]]], np.int32)
-                #pts = pts.reshape((-1,1,2))
-                #cv2.polylines(self.aruco_frame,[pts],True,(0,255,255))
-                #print(conversion_factor)
-                rotM = np.zeros(shape=(3,3))
-                cv2.Rodrigues(rvec[i-1  ], rotM, jacobian = 0)
-                R = rotM
+    
+                R = np.zeros(shape=(3,3))
+                cv2.Rodrigues(rvec[i-1  ], R, jacobian = 0)
                 sy = math.sqrt(R[0,0] * R[0,0] +  R[1,0] * R[1,0])
          
                 singular = sy < 1e-6
@@ -182,7 +178,8 @@ if __name__ == '__main__':
     
     while 1:
        
-        map.get_transform()
+        trans = map.get_transform(230)
+        print(trans)
         map.get_new_frame()
         map.show_frame()
         k = cv2.waitKey(1) & 0xff
