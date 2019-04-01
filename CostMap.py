@@ -10,23 +10,51 @@ import cv2.aruco as aruco
 
 import math      
 import numpy as np
+import time
 
 class map_capture():
     def __init__(self,camera_option):
         self.video = cv2.VideoCapture(camera_option)
         self.video.set(cv2.CAP_PROP_BUFFERSIZE, 1);
         self.video.set(cv2.CAP_PROP_AUTOFOCUS, 1)
+        #------Settings for big marker ID 0
+        self.video.set(cv2.CAP_PROP_BRIGHTNESS,128)
+        self.video.set(cv2.CAP_PROP_CONTRAST,128)
+        self.video.set(cv2.CAP_PROP_SHARPNESS,255)
+        exposure = self.video.get(cv2.CAP_PROP_EXPOSURE)
+        self.video.set(cv2.CAP_PROP_EXPOSURE,exposure - 2)
+        #------Settings for smaller ID 49 but requires smart exposure changes
+        #self.video.set(cv2.CAP_PROP_BRIGHTNESS,0)
+        #self.video.set(cv2.CAP_PROP_CONTRAST,0)
+        #self.video.set(cv2.CAP_PROP_SHARPNESS,255)
+        
+        #self.previous_exposure = 0;
+        #self.set_camera_exposure()
+        #---------------------------------
         self.width = self.video.get(cv2.CAP_PROP_FRAME_WIDTH)   # float
         self.height = self.video.get(cv2.CAP_PROP_FRAME_HEIGHT) # float
-        self.video.set(cv2.CAP_PROP_BRIGHTNESS,0)
-        self.video.set(cv2.CAP_PROP_CONTRAST,0)
-   
-        self.video.set(cv2.CAP_PROP_SHARPNESS,255)
-        
                        
         ret, self.aruco_frame = self.video.read()
 #        self.video.set(cv2.CAP_PROP_FRAME_WIDTH, 1280) # set the resolution - 640,480
 #        self.video.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+        
+    def set_camera_exposure(self):
+        
+        self.video.get(cv2.CAP_PROP_AUTO_EXPOSURE,0.75)
+        time.sleep(0.1)
+        self.video.get(cv2.CAP_PROP_AUTO_EXPOSURE,0.25)
+        exposure = self.video.get(cv2.CAP_PROP_EXPOSURE)
+        print(exposure)
+        if (self.previous_exposure != exposure):
+        
+            self.previous_exposure = exposure
+            print('Camera Exposure = ' + str(exposure))
+            if (exposure <= -5):
+                print('Use Light Mode')
+                self.video.set(cv2.CAP_PROP_EXPOSURE,-7)
+            else:
+                self.video.set(cv2.CAP_PROP_EXPOSURE,-3)
+                print('Use Dark Mode')
         
     def get_webcam_feed(self):
         return self.webcam_feed
@@ -46,7 +74,7 @@ class map_capture():
         return ((thresh.flatten()/2.55).astype(int))
     
     def __get_aruco_parameters(self):
-        aruco_dimensions = 80
+        aruco_dimensions = 200
         aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_250) 
         parameters =  aruco.DetectorParameters_create()
         return (aruco_dict,parameters,aruco_dimensions)
@@ -69,12 +97,9 @@ class map_capture():
         if np.all(ids != None):
             for i in range(0,int(ids.size)):
                 
-                if ids[0][i] == 49:
-                    
-                
+                if ids[0][0] == 0: #49 is smaller id
                     rvec, tvec,_ = aruco.estimatePoseSingleMarkers(corners[i], 0.05, cameraMatrix, distCoeffs) #Estimate pose of each marker and return the values rvet and tvec---different from camera coefficients
                     (rvec-tvec).any() # get rid of that nasty numpy value array error
-            
             
                     aruco.drawAxis(self.aruco_frame, cameraMatrix, distCoeffs, rvec[0], tvec[0], 0.1) #Draw Axis
                     aruco.drawDetectedMarkers(self.aruco_frame, corners) #Draw A square around the markers
@@ -98,7 +123,9 @@ class map_capture():
                  
                     z = (-z)
             
-                    distance_aruco_to_platform_centre = math.sqrt((((217/2)-50)*conversion_factor)**2 + (((407/2)-50)*conversion_factor)**2)
+                    distance_marker_edge = 110
+            
+                    distance_aruco_to_platform_centre = math.sqrt((((217/2)-distance_marker_edge)*conversion_factor)**2 + (((407/2)-distance_marker_edge)*conversion_factor)**2)
                     angle_offset = math.atan(((407/2)*conversion_factor)/((217/2)*conversion_factor)) - (math.pi)/2
                     
                     platform_center_x = int(aruco_x_coor + distance_aruco_to_platform_centre*math.cos(z-angle_offset))
@@ -171,14 +198,11 @@ class map_capture():
         cv2.destroyAllWindows()
         self.video.release()
         
-
-    
-
         
 if __name__ == '__main__':
     map = map_capture(1)
     while 1:
-       
+        #map.set_camera_exposure()
         trans = map.get_transform()
         #print(trans)
         map.get_new_frame()
