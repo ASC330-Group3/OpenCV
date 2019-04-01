@@ -21,6 +21,8 @@ class map_capture():
         self.video.set(cv2.CAP_PROP_BRIGHTNESS,128)
         self.video.set(cv2.CAP_PROP_CONTRAST,128)
         self.video.set(cv2.CAP_PROP_SHARPNESS,255)
+        self.video.set(cv2.CAP_PROP_AUTO_EXPOSURE,0.75)
+        time.sleep(1)
         exposure = self.video.get(cv2.CAP_PROP_EXPOSURE)
         self.video.set(cv2.CAP_PROP_EXPOSURE,exposure - 2)
         #------Settings for smaller ID 49 but requires smart exposure changes
@@ -40,9 +42,9 @@ class map_capture():
         
     def set_camera_exposure(self):
         
-        self.video.get(cv2.CAP_PROP_AUTO_EXPOSURE,0.75)
+        self.video.set(cv2.CAP_PROP_AUTO_EXPOSURE,0.75)
         time.sleep(0.1)
-        self.video.get(cv2.CAP_PROP_AUTO_EXPOSURE,0.25)
+        self.video.set(cv2.CAP_PROP_AUTO_EXPOSURE,0.25)
         exposure = self.video.get(cv2.CAP_PROP_EXPOSURE)
         print(exposure)
         if (self.previous_exposure != exposure):
@@ -91,7 +93,7 @@ class map_capture():
         #lists of ids and the corners beloning to each ids
         corners, ids, rejectedImgPoints = aruco.detectMarkers(self.aruco_frame, aruco_dict, parameters=parameters)
         
-        self.aruco_frame = aruco.drawDetectedMarkers(self.aruco_frame, corners,ids,(255,255,0))
+        #self.aruco_frame = aruco.drawDetectedMarkers(self.aruco_frame, corners,ids,(255,255,0))
         cameraMatrix = np.array([[1.3953673275755928e+03, 0, 9.9285445205853750e+02], [0,1.3880458574466945e+03, 5.3905119245877574e+02],[ 0., 0., 1.]])
         distCoeffs = np.array([5.7392039180004371e-02, -3.4983260309560962e-02,-2.5933903577082485e-03, 3.4269688895033714e-03,-1.8891849772162170e-01 ])
         if np.all(ids != None):
@@ -101,8 +103,8 @@ class map_capture():
                     rvec, tvec,_ = aruco.estimatePoseSingleMarkers(corners[i], 0.05, cameraMatrix, distCoeffs) #Estimate pose of each marker and return the values rvet and tvec---different from camera coefficients
                     (rvec-tvec).any() # get rid of that nasty numpy value array error
             
-                    aruco.drawAxis(self.aruco_frame, cameraMatrix, distCoeffs, rvec[0], tvec[0], 0.1) #Draw Axis
-                    aruco.drawDetectedMarkers(self.aruco_frame, corners) #Draw A square around the markers
+                    #aruco.drawAxis(self.aruco_frame, cameraMatrix, distCoeffs, rvec[0], tvec[0], 0.1) #Draw Axis
+                    #aruco.drawDetectedMarkers(self.aruco_frame, corners) #Draw A square around the markers
                     aruco_x_coor = (corners[i][0][0][0] + corners[i][0][1][0] + corners[i][0][2][0] + corners[i][0][3][0]) / 4
                     aruco_y_coor = (corners[i][0][0][1] + corners[i][0][1][1] + corners[i][0][2][1] + corners[i][0][3][1]) / 4
              
