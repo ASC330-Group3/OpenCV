@@ -18,19 +18,21 @@ class map_capture():
         self.video.set(cv2.CAP_PROP_BUFFERSIZE, 1);
         self.video.set(cv2.CAP_PROP_AUTOFOCUS, 1)
         #------Settings for big marker ID 0
-        self.video.set(cv2.CAP_PROP_BRIGHTNESS,128)
-        self.video.set(cv2.CAP_PROP_CONTRAST,128)
+        self.video.set(cv2.CAP_PROP_BRIGHTNESS,162)
+        self.video.set(cv2.CAP_PROP_CONTRAST,255)
+        self.video.set(cv2.CAP_PROP_SATURATION,255)
         self.video.set(cv2.CAP_PROP_SHARPNESS,255)
+        self.video.set(cv2.CAP_PROP_AUTO_EXPOSURE,0.75)
         self.video.set(cv2.CAP_PROP_AUTO_EXPOSURE,0.75)
         time.sleep(1)
         exposure = self.video.get(cv2.CAP_PROP_EXPOSURE)
         self.video.set(cv2.CAP_PROP_EXPOSURE,exposure - 2)
         #------Settings for smaller ID 49 but requires smart exposure changes
-        #self.video.set(cv2.CAP_PROP_BRIGHTNESS,0)
-        #self.video.set(cv2.CAP_PROP_CONTRAST,0)
-        #self.video.set(cv2.CAP_PROP_SHARPNESS,255)
-        
-        #self.previous_exposure = 0;
+#        self.video.set(cv2.CAP_PROP_BRIGHTNESS,90)
+#        self.video.set(cv2.CAP_PROP_CONTRAST,0)
+#        self.video.set(cv2.CAP_PROP_SHARPNESS,255)
+#        
+#        self.previous_exposure = 0;
         #self.set_camera_exposure()
         #---------------------------------
         self.width = self.video.get(cv2.CAP_PROP_FRAME_WIDTH)   # float
@@ -43,9 +45,10 @@ class map_capture():
     def set_camera_exposure(self):
         
         self.video.set(cv2.CAP_PROP_AUTO_EXPOSURE,0.75)
-        time.sleep(0.1)
-        self.video.set(cv2.CAP_PROP_AUTO_EXPOSURE,0.25)
+        time.sleep(1)
         exposure = self.video.get(cv2.CAP_PROP_EXPOSURE)
+        self.video.set(cv2.CAP_PROP_AUTO_EXPOSURE,0.25)
+        
         print(exposure)
         if (self.previous_exposure != exposure):
         
@@ -64,16 +67,18 @@ class map_capture():
     def get_new_frame(self):
         self.flat_list = []
         
-        frame = self.aruco_frame
+        frame = self.aruco_frame.copy()
         
         frame = cv2.flip(frame, 0)
      
-        #cv2.imshow('flip',frame)
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        retval, thresh = cv2.threshold(gray,200,255,cv2.THRESH_BINARY)
-        #cv2.imshow("CostMap",thresh)
+        retval, thresh = cv2.threshold(gray,85,255,cv2.THRESH_BINARY)
+        kernel = np.ones((5,5),np.uint8)
+        erosion = cv2.erode(thresh,kernel,iterations = 1)
+        dialation =cv2.dilate(erosion,kernel,iterations=1)
+        cv2.imshow("CostMap",dialation)
       
-        return ((thresh.flatten()/2.55).astype(int))
+        return ((erosion.flatten()/2.55).astype(int))
     
     def __get_aruco_parameters(self):
         aruco_dimensions = 200
@@ -81,14 +86,60 @@ class map_capture():
         parameters =  aruco.DetectorParameters_create()
         return (aruco_dict,parameters,aruco_dimensions)
     
+    def __set_Arm_ROI(self,x,y,conversion_factor,orignal_frame,radius):
+        
+        mask_ROI = np.zeros((int(self.height),int(self.width)), np.int8)
+        arm_limits = int(conversion_factor*radius)
+        mask_ROI = cv2.circle(mask_ROI,(int(x),int(y)),arm_limits,(255,255,255),-1)
+        
+        mask_ROI = cv2.inRange(mask_ROI, 1, 255)
+   
+        output = cv2.bitwise_and(orignal_frame,orignal_frame, mask=mask_ROI)
+        return output
+        
+        
+    def __get_distance_from_coor(self,x,y,offset_distance,conversion_factor):
+        distance = math.sqrt((((y/2)-offset_distance)*conversion_factor)**2 + (((x/2)-offset_distance)*conversion_factor)**2)
+        return distance        
+    def __get_angle_offset(self,x,y,conversion_factor):
+        offset = math.atan(((y/2)*conversion_factor)/((x/2)*conversion_factor)) - (math.pi)/2
+        return offset
+    
+    def __transform_coordinates(self,x,y,distance,angle,angle_offset):
+        new_x = int(x + distance*math.cos(angle-angle_offset))
+        new_y = int(y - distance*math.sin(angle-angle_offset))
+        
+        return (new_x,new_y)
+    
+    def __detect_colour_in_arm_roi(self,arm_ROI):
+        img= arm_ROI.copy()
+        
+        mask_ROI = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+        retval, mask_thresh = cv2.threshold(mask_ROI,100,255,cv2.THRESH_BINARY)
+        mask_thresh = cv2.inRange(mask_thresh, 1, 255)
+        output = cv2.bitwise_and(img,img, mask=mask_thresh)
+        hsv_frame = cv2.cvtColor(output,cv2.COLOR_BGR2HSV)
+        lower_red = np.array([3,210,0])
+        upper_red = np.array([7,255,255])
+        output = cv2.inRange(hsv_frame, lower_red, upper_red)
+        kernel = np.ones((3,3),np.uint8)
+        erosion = cv2.erode(output,kernel,iterations = 1)
+        
+        im2, contours, hierarchy = cv2.findContours(erosion,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+        cnt= contours[0][0]
+        coor = (cnt[0][0],cnt[0][1])
+        cv2.circle(img,coor,5,(0,255,0),-1)
+        
+        cv2.imshow("output",img)
+        #return output
+    
     def get_transform(self):
        
         aruco_dict,parameters,aruco_dimensions = self.__get_aruco_parameters()
         
         ret, self.webcam_feed = self.video.read()
-        self.aruco_frame = self.webcam_feed
-        #print(frame.shape) #480x640
-        # Our operations on the frame come here
+        self.aruco_frame = self.webcam_feed.copy()
+        orignal_frame = self.webcam_feed.copy()
 
         #lists of ids and the corners beloning to each ids
         corners, ids, rejectedImgPoints = aruco.detectMarkers(self.aruco_frame, aruco_dict, parameters=parameters)
@@ -110,8 +161,8 @@ class map_capture():
              
                     
                     #convert arena coordinates to mm
-                    conversion_factor = (math.sqrt((abs(corners[i][0][0][0] - corners[i][0][1][0]))**2+(abs(corners[i][0][0][1] - corners[i][0][1][1]))**2))/aruco_dimensions
-        
+                    #conversion_factor = (math.sqrt((abs(corners[i][0][0][0] - corners[i][0][1][0]))**2+(abs(corners[i][0][0][1] - corners[i][0][1][1]))**2))/aruco_dimensions
+                    conversion_factor = 0.21242645786248002
                     R = np.zeros(shape=(3,3))
                     cv2.Rodrigues(rvec[i-1  ], R, jacobian = 0)
                     sy = math.sqrt(R[0,0] * R[0,0] +  R[1,0] * R[1,0])
@@ -127,23 +178,17 @@ class map_capture():
             
                     distance_marker_edge = 110
             
-                    distance_aruco_to_platform_centre = math.sqrt((((217/2)-distance_marker_edge)*conversion_factor)**2 + (((407/2)-distance_marker_edge)*conversion_factor)**2)
-                    angle_offset = math.atan(((407/2)*conversion_factor)/((217/2)*conversion_factor)) - (math.pi)/2
+                    distance_aruco_to_platform_centre = self.__get_distance_from_coor(407,217,distance_marker_edge,conversion_factor)
+                    angle_offset = self.__get_angle_offset(407,217,conversion_factor)
                     
-                    platform_center_x = int(aruco_x_coor + distance_aruco_to_platform_centre*math.cos(z-angle_offset))
-                    platform_center_y = int(aruco_y_coor - distance_aruco_to_platform_centre*math.sin(z-angle_offset))
-                    
-
-                    
-                    cv2.circle(self.aruco_frame,(platform_center_x,platform_center_y), 1, (0,0,255), -1)
-                    
+                    platform_center_x,platform_center_y = self.__transform_coordinates(aruco_x_coor,aruco_y_coor,distance_aruco_to_platform_centre,z,angle_offset)
                     
                     #Draw rotated rectangle
-                    angle = -z#angle_offset
+                    angle = -z
                     x0 = platform_center_x
                     y0 = platform_center_y
-                    height = 370*conversion_factor
-                    width = 420*conversion_factor
+                    height = 500*conversion_factor
+                    width = 550*conversion_factor
                     b = math.cos(angle) * 0.7
                     a = math.sin(angle) * 0.7
                     pt0 = (int(x0 - a * height - b * width), int(y0 + b * height - a * width))
@@ -167,8 +212,18 @@ class map_capture():
                     #return angle, x , y
                     found = 1
                     
+                    distance_to_arm = self.__get_distance_from_coor(400,0,0,conversion_factor)
+                    angle_offset = 0
+                    arm_centre_x,arm_centre_y = self.__transform_coordinates(aruco_x_coor,aruco_y_coor,distance_to_arm,z,angle_offset)
+                    
+                    arm_ROI = self.__set_Arm_ROI(arm_centre_x,arm_centre_y,conversion_factor,orignal_frame,350)
+                    self.__detect_colour_in_arm_roi(arm_ROI)
+                    
                     #The costmap image is flipped along the x -axis for screen coordinates:
                     platform_center_y = self.height - platform_center_y
+                    
+                    
+                    
                     
                     transform_dict = {
                             "state" : found,
@@ -179,6 +234,7 @@ class map_capture():
                 
                     return (transform_dict)
         else:
+            #\self.set_camera_exposure()
             found = 0
             transform_dict = {
                         "state" : found,
