@@ -10,11 +10,13 @@ import cv2.aruco as aruco
 
 import math      
 import numpy as np
-import time
+
 
 class map_capture():
     def __init__(self,camera_option):
         self.video = cv2.VideoCapture(camera_option)
+        self.video.set(cv2.CAP_PROP_EXPOSURE,-7)
+        self.video.set(cv2.CAP_PROP_SETTINGS,0)
         self.video.set(cv2.CAP_PROP_BUFFERSIZE, 1);
         self.video.set(cv2.CAP_PROP_AUTOFOCUS, 0)
         self.video.set(cv2.CAP_PROP_FOCUS, 0)
@@ -23,38 +25,20 @@ class map_capture():
         self.video.set(cv2.CAP_PROP_CONTRAST,255)
         self.video.set(cv2.CAP_PROP_SATURATION,255)
         self.video.set(cv2.CAP_PROP_SHARPNESS,255)
-        #self.video.set(cv2.CAP_PROP_AUTO_EXPOSURE,0.75)
+        self.video.set(cv2.CAP_PROP_GAIN,100)
+      
 
-        #time.sleep(1)
         
-        exposure = self.video.get(cv2.CAP_PROP_EXPOSURE)
+        #exposure = self.video.get(cv2.CAP_PROP_EXPOSURE)
+        #exposure = exposure-2
         #self.video.set(cv2.CAP_PROP_AUTO_EXPOSURE,0.25)
         
-        self.video.set(cv2.CAP_PROP_EXPOSURE,exposure - 2)
+
 
         self.width = self.video.get(cv2.CAP_PROP_FRAME_WIDTH)   # float
         self.height = self.video.get(cv2.CAP_PROP_FRAME_HEIGHT) # float
                        
         ret, self.aruco_frame = self.video.read()
-
-    def set_camera_exposure(self):
-        
-        self.video.set(cv2.CAP_PROP_AUTO_EXPOSURE,0.75)
-        time.sleep(1)
-        exposure = self.video.get(cv2.CAP_PROP_EXPOSURE)
-        self.video.set(cv2.CAP_PROP_AUTO_EXPOSURE,0.25)
-        
-        print(exposure)
-        if (self.previous_exposure != exposure):
-        
-            self.previous_exposure = exposure
-            print('Camera Exposure = ' + str(exposure))
-            if (exposure <= -5):
-                print('Use Light Mode')
-                self.video.set(cv2.CAP_PROP_EXPOSURE,-7)
-            else:
-                self.video.set(cv2.CAP_PROP_EXPOSURE,-3)
-                print('Use Dark Mode')
         
     def get_webcam_feed(self):
         return self.webcam_feed
@@ -135,9 +119,8 @@ class map_capture():
         ret, self.webcam_feed = self.video.read()
         self.aruco_frame = self.webcam_feed.copy()
         orignal_frame = self.webcam_feed.copy()
-
+        print(self.video.get(cv2.CAP_PROP_EXPOSURE))
         #lists of ids and the corners beloning to each ids
-        cv2.imshow('fr',self.aruco_frame)
         corners, ids, rejectedImgPoints = aruco.detectMarkers(self.aruco_frame, aruco_dict, parameters=parameters)
         
         #self.aruco_frame = aruco.drawDetectedMarkers(self.aruco_frame, corners,ids,(255,255,0))
@@ -146,12 +129,12 @@ class map_capture():
         if np.all(ids != None):
             for i in range(0,int(ids.size)):
                 
-                if ids[0][i] == 0: #49 is smaller id
+                if ids[0][0] == 0: #49 is smaller id
                     rvec, tvec,_ = aruco.estimatePoseSingleMarkers(corners[i], 0.05, cameraMatrix, distCoeffs) #Estimate pose of each marker and return the values rvet and tvec---different from camera coefficients
                     (rvec-tvec).any() # get rid of that nasty numpy value array error
             
                     #aruco.drawAxis(self.aruco_frame, cameraMatrix, distCoeffs, rvec[0], tvec[0], 0.1) #Draw Axis
-                    #aruco.drawDetectedMarkers(self.aruco_frame, corners) #Draw A square around the markers
+                    aruco.drawDetectedMarkers(self.aruco_frame, corners) #Draw A square around the markers
                     aruco_x_coor = (corners[i][0][0][0] + corners[i][0][1][0] + corners[i][0][2][0] + corners[i][0][3][0]) / 4
                     aruco_y_coor = (corners[i][0][0][1] + corners[i][0][1][1] + corners[i][0][2][1] + corners[i][0][3][1]) / 4
              
