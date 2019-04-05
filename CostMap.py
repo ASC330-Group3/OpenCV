@@ -16,14 +16,15 @@ class map_capture():
     def __init__(self,camera_option):
         self.video = cv2.VideoCapture(camera_option)
         self.video.set(cv2.CAP_PROP_BUFFERSIZE, 1);
-        self.video.set(cv2.CAP_PROP_AUTOFOCUS, 1)
+        self.video.set(cv2.CAP_PROP_AUTOFOCUS, 0)
+        self.video.set(cv2.CAP_PROP_FOCUS, 0)
         #------Settings for big marker ID 0
         self.video.set(cv2.CAP_PROP_BRIGHTNESS,162)
         self.video.set(cv2.CAP_PROP_CONTRAST,255)
         self.video.set(cv2.CAP_PROP_SATURATION,255)
         self.video.set(cv2.CAP_PROP_SHARPNESS,255)
         self.video.set(cv2.CAP_PROP_AUTO_EXPOSURE,0.75)
-        self.video.set(cv2.CAP_PROP_AUTO_EXPOSURE,0.75)
+
         time.sleep(1)
         exposure = self.video.get(cv2.CAP_PROP_EXPOSURE)
         self.video.set(cv2.CAP_PROP_EXPOSURE,exposure - 2)
@@ -76,7 +77,7 @@ class map_capture():
         kernel = np.ones((5,5),np.uint8)
         erosion = cv2.erode(thresh,kernel,iterations = 1)
         dialation =cv2.dilate(erosion,kernel,iterations=1)
-        cv2.imshow("CostMap",dialation)
+        #cv2.imshow("CostMap",dialation)
       
         return ((erosion.flatten()/2.55).astype(int))
     
@@ -130,7 +131,7 @@ class map_capture():
         coor = (cnt[0][0],cnt[0][1])
         cv2.circle(img,coor,5,(0,255,0),-1)
         
-        cv2.imshow("output",img)
+        #cv2.imshow("output",img)
         #return output
     
     def get_transform(self):
@@ -223,7 +224,7 @@ class map_capture():
                     platform_center_y = self.height - platform_center_y
                     
                     
-                    
+                    print(found)
                     
                     transform_dict = {
                             "state" : found,
