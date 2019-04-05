@@ -33,6 +33,7 @@ class map_capture():
         self.width = self.video.get(cv2.CAP_PROP_FRAME_WIDTH)   # float
         self.height = self.video.get(cv2.CAP_PROP_FRAME_HEIGHT) # float
         self.cam_settings_correct = False
+        ret, self.aruco_frame = self.video.read()
                        
     def get_webcam_feed(self):
         return self.webcam_feed
