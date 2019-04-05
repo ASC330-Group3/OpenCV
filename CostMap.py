@@ -224,7 +224,7 @@ class map_capture():
                     platform_center_y = self.height - platform_center_y
                     
                     
-                    print(found)
+                   
                     
                     transform_dict = {
                             "state" : found,
