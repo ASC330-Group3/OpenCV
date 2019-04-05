@@ -27,10 +27,10 @@ class map_capture():
 
         #time.sleep(1)
         
-        #exposure = self.video.get(cv2.CAP_PROP_EXPOSURE)
+        exposure = self.video.get(cv2.CAP_PROP_EXPOSURE)
         #self.video.set(cv2.CAP_PROP_AUTO_EXPOSURE,0.25)
         
-        #self.video.set(cv2.CAP_PROP_EXPOSURE,exposure - 2)
+        self.video.set(cv2.CAP_PROP_EXPOSURE,exposure - 2)
 
         self.width = self.video.get(cv2.CAP_PROP_FRAME_WIDTH)   # float
         self.height = self.video.get(cv2.CAP_PROP_FRAME_HEIGHT) # float
@@ -137,6 +137,7 @@ class map_capture():
         orignal_frame = self.webcam_feed.copy()
 
         #lists of ids and the corners beloning to each ids
+        cv2.imshow('fr',self.aruco_frame)
         corners, ids, rejectedImgPoints = aruco.detectMarkers(self.aruco_frame, aruco_dict, parameters=parameters)
         
         #self.aruco_frame = aruco.drawDetectedMarkers(self.aruco_frame, corners,ids,(255,255,0))
@@ -145,7 +146,7 @@ class map_capture():
         if np.all(ids != None):
             for i in range(0,int(ids.size)):
                 
-                if ids[0][0] == 0: #49 is smaller id
+                if ids[0][i] == 0: #49 is smaller id
                     rvec, tvec,_ = aruco.estimatePoseSingleMarkers(corners[i], 0.05, cameraMatrix, distCoeffs) #Estimate pose of each marker and return the values rvet and tvec---different from camera coefficients
                     (rvec-tvec).any() # get rid of that nasty numpy value array error
             
