@@ -16,22 +16,7 @@ from matplotlib import pyplot as plt
 class map_capture():
     def __init__(self,camera_option):
         self.video = cv2.VideoCapture(camera_option)
-        #self.video.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0)
-        
-       
-        self.video.set(cv2.CAP_PROP_BUFFERSIZE, 1);
-        self.video.set(cv2.CAP_PROP_AUTOFOCUS, 0)
-        self.video.set(cv2.CAP_PROP_FOCUS, 0)
-
-        self.video.set(cv2.CAP_PROP_BRIGHTNESS,162)
-        self.video.set(cv2.CAP_PROP_CONTRAST,255)
-        self.video.set(cv2.CAP_PROP_SATURATION,255)
-        self.video.set(cv2.CAP_PROP_SHARPNESS,255)
-        self.video.set(cv2.CAP_PROP_GAIN,100)
-        self.video.set(cv2.CAP_PROP_EXPOSURE,-7)
-
-        self.width = self.video.get(cv2.CAP_PROP_FRAME_WIDTH)   # float
-        self.height = self.video.get(cv2.CAP_PROP_FRAME_HEIGHT) # float
+        self.set_camera_settings()
         self.cam_settings_correct = False
         ret, self.aruco_frame = self.video.read()
                        
@@ -111,16 +96,15 @@ class map_capture():
         self.video.set(cv2.CAP_PROP_BUFFERSIZE, 1);
         self.video.set(cv2.CAP_PROP_AUTOFOCUS, 0)
         self.video.set(cv2.CAP_PROP_FOCUS, 0)
-
         self.video.set(cv2.CAP_PROP_BRIGHTNESS,162)
         self.video.set(cv2.CAP_PROP_CONTRAST,255)
         self.video.set(cv2.CAP_PROP_SATURATION,255)
         self.video.set(cv2.CAP_PROP_SHARPNESS,255)
         self.video.set(cv2.CAP_PROP_GAIN,100)
         self.video.set(cv2.CAP_PROP_EXPOSURE,-7)
-
         self.width = self.video.get(cv2.CAP_PROP_FRAME_WIDTH)   # float
         self.height = self.video.get(cv2.CAP_PROP_FRAME_HEIGHT) # float
+        
     def reconnect_camera(self,camera_option):
         self.video = cv2.VideoCapture(camera_option)
         self.set_camera_settings()
@@ -128,24 +112,28 @@ class map_capture():
     def get_transform(self):
        
         aruco_dict,parameters,aruco_dimensions = self.__get_aruco_parameters()
-        #self.video.set(cv2.CAP_PROP_GAIN,100)
-        #self.video.set(cv2.CAP_PROP_EXPOSURE,-7)
         
         ret, self.webcam_feed = self.video.read()
         
-       
-        
-        
-        
         if (ret == True):
+            
             if (self.cam_settings_correct == False):
                 light_level = self.calculate_light_level_hist()
+            
             else:
                 light_level = 0
                 
             if (light_level>=128):
                  
-                 self.set_camera_settings()
+                self.set_camera_settings()
+                found = 0
+                transform_dict = {
+                            "state" : found,
+                            "x" : 0,
+                            "y" : 0,
+                            "angle" : 0
+                            }
+                return (transform_dict)
             else:
                 self.cam_settings_correct = True
             
@@ -257,22 +245,21 @@ class map_capture():
                     return (transform_dict)
         else:
             print("No camera detected")
+            self.stop()
 
                 
     def calculate_light_level_hist(self):
-        
         img = self.webcam_feed.copy()
         img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
         hist = cv2.calcHist([img],[0],None,[256],[0,256])
         minVal, maxVal, minLoc, maxLoc =cv2.minMaxLoc(hist)
         #print(maxLoc)
         #plt.plot(hist)
-        #plt.plot(img)
         #plt.show()
         return(maxLoc[1])
         
     def show_frame(self):
-        #cv2.imshow('costmap',self.thresh)
+
         cv2.imshow('Aruco',self.aruco_frame)
         
         
@@ -284,16 +271,13 @@ class map_capture():
 if __name__ == '__main__':
     map = map_capture(1)
 
-   
     while 1:
-        #map.set_camera_exposure()
         trans = map.get_transform()
-        #if (trans == None):
-        #    map.reconnect_camera(1)
-        #else:
-            
-        map.get_new_frame()
-        map.show_frame()
+        if (trans == None):
+            map.reconnect_camera(1)
+        else:
+            map.get_new_frame()
+            map.show_frame()
         k = cv2.waitKey(30) & 0xff
         #Press escape to close program and take a picture
         if k == 27 :
