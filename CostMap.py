@@ -23,11 +23,13 @@ class map_capture():
         self.video.set(cv2.CAP_PROP_CONTRAST,255)
         self.video.set(cv2.CAP_PROP_SATURATION,255)
         self.video.set(cv2.CAP_PROP_SHARPNESS,255)
-        self.video.set(cv2.CAP_PROP_AUTO_EXPOSURE,0.75)
+        #self.video.set(cv2.CAP_PROP_AUTO_EXPOSURE,0.75)
 
-        time.sleep(1)
-        self.video.set(cv2.CAP_PROP_AUTO_EXPOSURE,0.25)
+        #time.sleep(1)
+        
         exposure = self.video.get(cv2.CAP_PROP_EXPOSURE)
+        #self.video.set(cv2.CAP_PROP_AUTO_EXPOSURE,0.25)
+        
         self.video.set(cv2.CAP_PROP_EXPOSURE,exposure - 2)
         #------Settings for smaller ID 49 but requires smart exposure changes
 #        self.video.set(cv2.CAP_PROP_BRIGHTNESS,90)
