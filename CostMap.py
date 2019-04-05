@@ -216,8 +216,8 @@ class map_capture():
                     angle_offset = 0
                     arm_centre_x,arm_centre_y = self.__transform_coordinates(aruco_x_coor,aruco_y_coor,distance_to_arm,z,angle_offset)
                     
-                    arm_ROI = self.__set_Arm_ROI(arm_centre_x,arm_centre_y,conversion_factor,orignal_frame,350)
-                    self.__detect_colour_in_arm_roi(arm_ROI)
+                    #arm_ROI = self.__set_Arm_ROI(arm_centre_x,arm_centre_y,conversion_factor,orignal_frame,350)
+                    #self.__detect_colour_in_arm_roi(arm_ROI)
                     
                     #The costmap image is flipped along the x -axis for screen coordinates:
                     platform_center_y = self.height - platform_center_y
