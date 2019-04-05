@@ -27,25 +27,16 @@ class map_capture():
 
         #time.sleep(1)
         
-        exposure = self.video.get(cv2.CAP_PROP_EXPOSURE)
+        #exposure = self.video.get(cv2.CAP_PROP_EXPOSURE)
         #self.video.set(cv2.CAP_PROP_AUTO_EXPOSURE,0.25)
         
-        self.video.set(cv2.CAP_PROP_EXPOSURE,exposure - 2)
-        #------Settings for smaller ID 49 but requires smart exposure changes
-#        self.video.set(cv2.CAP_PROP_BRIGHTNESS,90)
-#        self.video.set(cv2.CAP_PROP_CONTRAST,0)
-#        self.video.set(cv2.CAP_PROP_SHARPNESS,255)
-#        
-#        self.previous_exposure = 0;
-        #self.set_camera_exposure()
-        #---------------------------------
+        #self.video.set(cv2.CAP_PROP_EXPOSURE,exposure - 2)
+
         self.width = self.video.get(cv2.CAP_PROP_FRAME_WIDTH)   # float
         self.height = self.video.get(cv2.CAP_PROP_FRAME_HEIGHT) # float
                        
         ret, self.aruco_frame = self.video.read()
-#        self.video.set(cv2.CAP_PROP_FRAME_WIDTH, 1280) # set the resolution - 640,480
-#        self.video.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-        
+
     def set_camera_exposure(self):
         
         self.video.set(cv2.CAP_PROP_AUTO_EXPOSURE,0.75)
