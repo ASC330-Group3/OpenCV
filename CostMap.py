@@ -32,6 +32,7 @@ class map_capture():
 
         self.width = self.video.get(cv2.CAP_PROP_FRAME_WIDTH)   # float
         self.height = self.video.get(cv2.CAP_PROP_FRAME_HEIGHT) # float
+        self.cam_settings_correct = False
                        
     def get_webcam_feed(self):
         return self.webcam_feed
@@ -48,7 +49,7 @@ class map_capture():
         kernel = np.ones((5,5),np.uint8)
         erosion = cv2.erode(thresh,kernel,iterations = 1)
         dialation =cv2.dilate(erosion,kernel,iterations=1)
-        
+        cv2.imshow("costmap",dialation)
       
         return ((dialation.flatten()/2.55).astype(int))
     
@@ -136,11 +137,16 @@ class map_capture():
         
         
         if (ret == True):
-            light_level = self.calculate_light_level_hist()
+            if (self.cam_settings_correct == False):
+                light_level = self.calculate_light_level_hist()
+            else:
+                light_level = 0
+                
             if (light_level>=128):
                  
                  self.set_camera_settings()
             else:
+                self.cam_settings_correct = True
             
                 self.aruco_frame = self.webcam_feed.copy()
                 orignal_frame = self.webcam_feed.copy()
@@ -281,13 +287,13 @@ if __name__ == '__main__':
     while 1:
         #map.set_camera_exposure()
         trans = map.get_transform()
-        if (trans == None):
-            map.reconnect_camera(1)
-        else:
+        #if (trans == None):
+        #    map.reconnect_camera(1)
+        #else:
             
-            map.get_new_frame()
-            map.show_frame()
-        k = cv2.waitKey(1) & 0xff
+        map.get_new_frame()
+        map.show_frame()
+        k = cv2.waitKey(30) & 0xff
         #Press escape to close program and take a picture
         if k == 27 :
             map.stop()
