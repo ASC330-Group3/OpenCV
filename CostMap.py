@@ -26,6 +26,7 @@ class map_capture():
         self.video.set(cv2.CAP_PROP_AUTO_EXPOSURE,0.75)
 
         time.sleep(1)
+        self.video.set(cv2.CAP_PROP_AUTO_EXPOSURE,0.25)
         exposure = self.video.get(cv2.CAP_PROP_EXPOSURE)
         self.video.set(cv2.CAP_PROP_EXPOSURE,exposure - 2)
         #------Settings for smaller ID 49 but requires smart exposure changes
@@ -226,6 +227,7 @@ class map_capture():
                     
                    
                     
+                    
                     transform_dict = {
                             "state" : found,
                             "x" : platform_center_x,
@@ -263,7 +265,7 @@ if __name__ == '__main__':
     while 1:
         #map.set_camera_exposure()
         trans = map.get_transform()
-        #print(trans)
+        print(trans)
         map.get_new_frame()
         map.show_frame()
         k = cv2.waitKey(1) & 0xff
