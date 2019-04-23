@@ -101,7 +101,7 @@ class map_capture():
                     z = 0
              
                 z = (-z)
-                distance_to_edge = 150
+              
                 distance_aruco_to_platform_centre = 120*scaling_factor#math.sqrt((((370/2)-distance_to_edge)*scaling_factor)**2 + (((420/2)-distance_to_edge)*scaling_factor)**2)
                 angle_offset = 0#-0.722191331499988#math.atan(((420/2)*scaling_factor)/((370/2)*scaling_factor)) - (math.pi)/2
                 
@@ -121,8 +121,8 @@ class map_capture():
                 y0 = platform_center_y
                 height = 360*scaling_factor
                 width = 420*scaling_factor
-                b = math.cos(angle) * 0.63
-                a = math.sin(angle) * 0.63
+                b = math.cos(angle) * 0.65
+                a = math.sin(angle) * 0.65
                 pt0 = (int(x0 - a * height - b * width), int(y0 + b * height - a * width))
                 pt1 = (int(x0 + a * height - b * width), int(y0 - b * height - a * width))
                 pt2 = (int(2 * x0 - pt0[0]), int(2 * y0 - pt0[1]))
