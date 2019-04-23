@@ -17,7 +17,7 @@ class map_capture():
         self.video.set(cv2.CAP_PROP_AUTOFOCUS, 0)
         self.width = self.video.get(cv2.CAP_PROP_FRAME_WIDTH)   # float
         self.height = self.video.get(cv2.CAP_PROP_FRAME_HEIGHT) # float
-        
+        self.rect_corners = np.array([[0,0],[0,0],[0,0],[0,0]])
 
         
         ret, self.aruco_frame = self.video.read()
@@ -68,94 +68,97 @@ class map_capture():
         if np.all(ids != None):
             for i in range(0,int(ids.size)):
                 
-                rvec, tvec,_ = aruco.estimatePoseSingleMarkers(corners[i], 0.05, cameraMatrix, distCoeffs) #Estimate pose of each marker and return the values rvet and tvec---different from camera coefficients
-                #(rvec-tvec).any() # get rid of that nasty numpy value array error
-        
-        
-                aruco.drawAxis(self.aruco_frame, cameraMatrix, distCoeffs, rvec[0], tvec[0], 0.1) #Draw Axis
-                aruco.drawDetectedMarkers(self.aruco_frame, corners) #Draw A square around the markers
-                aruco_x_coor = (corners[i][0][0][0] + corners[i][0][1][0] + corners[i][0][2][0] + corners[i][0][3][0]) / 4
-                aruco_y_coor = (corners[i][0][0][1] + corners[i][0][1][1] + corners[i][0][2][1] + corners[i][0][3][1]) / 4
-         
-                
-                #convert arena coordinates to mm
-                #scaling_factor = (math.sqrt((abs(corners[i][0][0][0] - corners[i][0][1][0]))**2+(abs(corners[i][0][0][1] - corners[i][0][1][1]))**2))/aruco_dimensions
-                scaling_factor = 0.21242645786248002
-                #pts = np.array([[corners[i][0][0][0],(corners[i][0][0][1]]), [corners[i][0][1][0],corners[i][0][1][1]] , [corners[i][0][2][0],corners[i][0][2][1]] , [corners[i][0][3][0],corners[i][0][3][1]]], np.int32)
-                #pts = pts.reshape((-1,1,2))
-                #cv2.polylines(self.aruco_frame,[pts],True,(0,255,255))
-                #print(scaling_factor)
-                rotM = np.zeros(shape=(3,3))
-                cv2.Rodrigues(rvec[i-1  ], rotM, jacobian = 0)
-                R = rotM
-                sy = math.sqrt(R[0,0] * R[0,0] +  R[1,0] * R[1,0])
-         
-                singular = sy < 1e-6
-             
-                if  not singular :
-                    x = math.atan2(R[2,1] , R[2,2])
-                    y = math.atan2(-R[2,0], sy)
-                    z = math.atan2(R[1,0], R[0,0])
-                else :
-
-                    z = 0
-             
-                z = (-z)
-              
-                distance_aruco_to_platform_centre = 120*scaling_factor#math.sqrt((((370/2)-distance_to_edge)*scaling_factor)**2 + (((420/2)-distance_to_edge)*scaling_factor)**2)
-                angle_offset = 0#-0.722191331499988#math.atan(((420/2)*scaling_factor)/((370/2)*scaling_factor)) - (math.pi)/2
-                
-                y_offset = 0;
-                platform_center_x = int(aruco_x_coor + distance_aruco_to_platform_centre*math.cos(z-angle_offset))
-                platform_center_y = int((aruco_y_coor + y_offset) - distance_aruco_to_platform_centre*math.sin(z-angle_offset))
-                
-                
-                #print(platform_center_x,platform_center_y)
-                
-                cv2.circle(self.aruco_frame,(platform_center_x,platform_center_y), 1, (0,0,255), -1)
-                
-                
-                #Draw rotated rectangle
-                angle = -z#angle_offset
-                x0 = platform_center_x
-                y0 = platform_center_y
-                height = 360*scaling_factor
-                width = 420*scaling_factor
-                b = math.cos(angle) * 0.65
-                a = math.sin(angle) * 0.65
-                pt0 = (int(x0 - a * height - b * width), int(y0 + b * height - a * width))
-                pt1 = (int(x0 + a * height - b * width), int(y0 - b * height - a * width))
-                pt2 = (int(2 * x0 - pt0[0]), int(2 * y0 - pt0[1]))
-                pt3 = (int(2 * x0 - pt1[0]), int(2 * y0 - pt1[1]))
+                if (ids[i]==0):
+                    rvec, tvec,_ = aruco.estimatePoseSingleMarkers(corners[i], 0.05, cameraMatrix, distCoeffs) #Estimate pose of each marker and return the values rvet and tvec---different from camera coefficients
+                    #(rvec-tvec).any() # get rid of that nasty numpy value array error
             
-                cv2.line(self.aruco_frame, pt0, pt1, (255, 255, 255), 1)
-                cv2.line(self.aruco_frame, pt1, pt2, (255, 255, 255), 1)
-                cv2.line(self.aruco_frame, pt2, pt3, (255, 255, 255), 1)
-                cv2.line(self.aruco_frame, pt3, pt0, (255, 255, 255), 1)
+            
+                    #aruco.drawAxis(self.aruco_frame, cameraMatrix, distCoeffs, rvec[0], tvec[0], 0.1) #Draw Axis
+                    #aruco.drawDetectedMarkers(self.aruco_frame, corners) #Draw A square around the markers
+                    aruco_x_coor = (corners[i][0][0][0] + corners[i][0][1][0] + corners[i][0][2][0] + corners[i][0][3][0]) / 4
+                    aruco_y_coor = (corners[i][0][0][1] + corners[i][0][1][1] + corners[i][0][2][1] + corners[i][0][3][1]) / 4
+             
+                    
+                    #convert arena coordinates to mm
+                    #scaling_factor = (math.sqrt((abs(corners[i][0][0][0] - corners[i][0][1][0]))**2+(abs(corners[i][0][0][1] - corners[i][0][1][1]))**2))/aruco_dimensions
+                    scaling_factor = 0.21242645786248002
+                    #pts = np.array([[corners[i][0][0][0],(corners[i][0][0][1]]), [corners[i][0][1][0],corners[i][0][1][1]] , [corners[i][0][2][0],corners[i][0][2][1]] , [corners[i][0][3][0],corners[i][0][3][1]]], np.int32)
+                    #pts = pts.reshape((-1,1,2))
+                    #cv2.polylines(self.aruco_frame,[pts],True,(0,255,255))
+                    #print(scaling_factor)
+                    rotM = np.zeros(shape=(3,3))
+                    cv2.Rodrigues(rvec[i-1  ], rotM, jacobian = 0)
+                    R = rotM
+                    sy = math.sqrt(R[0,0] * R[0,0] +  R[1,0] * R[1,0])
+             
+                    singular = sy < 1e-6
+                 
+                    if  not singular :
+                        x = math.atan2(R[2,1] , R[2,2])
+                        y = math.atan2(-R[2,0], sy)
+                        z = math.atan2(R[1,0], R[0,0])
+                    else :
+    
+                        z = 0
+                 
+                    z = (-z)
+                  
+                    distance_aruco_to_platform_centre = 120*scaling_factor#math.sqrt((((370/2)-distance_to_edge)*scaling_factor)**2 + (((420/2)-distance_to_edge)*scaling_factor)**2)
+                    angle_offset = 0#-0.722191331499988#math.atan(((420/2)*scaling_factor)/((370/2)*scaling_factor)) - (math.pi)/2
+                    
+                    y_offset = 0;
+                    platform_center_x = int(aruco_x_coor + distance_aruco_to_platform_centre*math.cos(z-angle_offset))
+                    platform_center_y = int((aruco_y_coor + y_offset) - distance_aruco_to_platform_centre*math.sin(z-angle_offset))
+                    
+                    
+                    #print(platform_center_x,platform_center_y)
+                    
+                    cv2.circle(self.aruco_frame,(platform_center_x,platform_center_y), 1, (0,0,255), -1)
+                    
+                    
+                    #Draw rotated rectangle
+                    angle = -z#angle_offset
+                    x0 = platform_center_x
+                    y0 = platform_center_y
+                    height = 360*scaling_factor
+                    width = 420*scaling_factor
+                    b = math.cos(angle) * 0.65
+                    a = math.sin(angle) * 0.65
+                    pt0 = (int(x0 - a * height - b * width), int(y0 + b * height - a * width))
+                    pt1 = (int(x0 + a * height - b * width), int(y0 - b * height - a * width))
+                    pt2 = (int(2 * x0 - pt0[0]), int(2 * y0 - pt0[1]))
+                    pt3 = (int(2 * x0 - pt1[0]), int(2 * y0 - pt1[1]))
                 
-                rect_corners = np.array([[pt0],[pt1],[pt2],[pt3]])
-                
-                cv2.fillPoly(self.aruco_frame,[rect_corners],(0,0,0))
-               
-                ###### DRAW ID #####
-                #cv2.putText(frame, str(x) + "," + str(y), (int(x)+20,int(y)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0),2,cv2.LINE_AA)
-                #cv2.putText(self.aruco_frame, str((z/math.pi)*180), (int(x_coor)+20,int(y_coor)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0),2,cv2.LINE_AA)
-                # Display the resulting frame
-                #return angle, x , y
-                found = 1
-                
-                #The costmap image is flipped along the x -axis for screen coordinates:
-                platform_center_y = self.height - platform_center_y
-                
-                transform_dict = {
-                        "state" : found,
-                        "x" : platform_center_x,
-                        "y" : platform_center_y,
-                        "angle" : z
-                        }
-                
-                return (transform_dict)
+                    cv2.line(self.aruco_frame, pt0, pt1, (255, 255, 255), 1)
+                    cv2.line(self.aruco_frame, pt1, pt2, (255, 255, 255), 1)
+                    cv2.line(self.aruco_frame, pt2, pt3, (255, 255, 255), 1)
+                    cv2.line(self.aruco_frame, pt3, pt0, (255, 255, 255), 1)
+                    
+                    self.rect_corners = np.array([[pt0],[pt1],[pt2],[pt3]])
+                    
+                    cv2.fillPoly(self.aruco_frame,[self.rect_corners],(0,0,0))
+                   
+                    ###### DRAW ID #####
+                    #cv2.putText(frame, str(x) + "," + str(y), (int(x)+20,int(y)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0),2,cv2.LINE_AA)
+                    #cv2.putText(self.aruco_frame, str((z/math.pi)*180), (int(x_coor)+20,int(y_coor)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0),2,cv2.LINE_AA)
+                    # Display the resulting frame
+                    #return angle, x , y
+                    found = 1
+                    
+                    #The costmap image is flipped along the x -axis for screen coordinates:
+                    platform_center_y = self.height - platform_center_y
+                    
+                    transform_dict = {
+                            "state" : found,
+                            "x" : platform_center_x,
+                            "y" : platform_center_y,
+                            "angle" : z
+                            }
+                    
+                    return (transform_dict)
         else:
+            cv2.fillPoly(self.aruco_frame,[self.rect_corners],(0,0,0))
+               
             found = 0
             transform_dict = {
                         "state" : found,
