@@ -25,8 +25,9 @@ class map_capture():
 #        self.video.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
         
     def get_webcam_feed(self):
-        return self.webcam_feed
-        
+        ret,webcam_feed = self.video.read()
+        return (webcam_feed)
+    
     def get_new_frame(self):
         self.flat_list = []
         
@@ -46,8 +47,8 @@ class map_capture():
         #aruco width and height
         aruco_dimensions = 180
         
-        ret, self.webcam_feed = self.video.read()
-        self.aruco_frame = self.webcam_feed
+        ret, self.aruco_frame = self.video.read()
+     
         #print(frame.shape) #480x640
         # Our operations on the frame come here
         gray = cv2.cvtColor(self.aruco_frame, cv2.COLOR_BGR2GRAY)
@@ -181,13 +182,14 @@ class map_capture():
         self.video.release()
         
 if __name__ == '__main__':
-    map = map_capture(1)
+    map = map_capture(0)
     
     while 1:
        
         map.get_transform()
         map.get_new_frame()
         map.show_frame()
+        cv2.imshow("webcam feed",map.get_webcam_feed())
         k = cv2.waitKey(1) & 0xff
         #Press escape to close program and take a picture
         if k == 27 :
