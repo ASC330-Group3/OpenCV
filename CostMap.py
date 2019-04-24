@@ -44,20 +44,13 @@ class map_capture():
     
     def get_transform(self):
         
-        #aruco width and height
-        aruco_dimensions = 180
-        
         ret, self.aruco_frame = self.video.read()
      
-        #print(frame.shape) #480x640
-        # Our operations on the frame come here
         gray = cv2.cvtColor(self.aruco_frame, cv2.COLOR_BGR2GRAY)
         retval, gray = cv2.threshold(gray,250,255,cv2.THRESH_BINARY)
       
-    
         aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_250) 
         parameters =  aruco.DetectorParameters_create()
-     
         
         #lists of ids and the corners beloning to each ids
         corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
@@ -123,8 +116,8 @@ class map_capture():
                     y0 = platform_center_y
                     height = 360*scaling_factor
                     width = 420*scaling_factor
-                    b = math.cos(angle) * 0.65
-                    a = math.sin(angle) * 0.65
+                    b = math.cos(angle) * 0.7
+                    a = math.sin(angle) * 0.7
                     pt0 = (int(x0 - a * height - b * width), int(y0 + b * height - a * width))
                     pt1 = (int(x0 + a * height - b * width), int(y0 - b * height - a * width))
                     pt2 = (int(2 * x0 - pt0[0]), int(2 * y0 - pt0[1]))
