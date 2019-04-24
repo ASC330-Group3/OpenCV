@@ -26,7 +26,11 @@ class map_capture():
         
     def get_webcam_feed(self):
         ret,webcam_feed = self.video.read()
-        return (ret,webcam_feed)
+        
+        if (ret == 0):
+            return(ret,0)
+        else:
+            return (ret,webcam_feed)
     
     def get_new_frame(self):
         self.flat_list = []
