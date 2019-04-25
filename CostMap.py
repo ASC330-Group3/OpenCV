@@ -292,7 +292,7 @@ class map_capture():
 
             if np.all(ids != None):
                 for i in range(0,int(ids.size)):
-                    if ids[0][0] == 0:
+                    if (ids[i]==0):
 
                         rvec, tvec,_ = aruco.estimatePoseSingleMarkers(corners[i], 0.05, cameraMatrix, distCoeffs) #Estimate pose of each marker and return the values rvet and tvec---different from camera coefficients
                         (rvec-tvec).any() # get rid of that nasty numpy value array error
@@ -351,9 +351,59 @@ class map_capture():
 
 
 
+#-------------------------------------------------------------------------------------------------------------------
 
+    def get_destination_coor(self):
+        aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_250)
+        parameters =  aruco.DetectorParameters_create()
+        ret, cam_feed = self.video.read()
 
+        if (ret == True):
 
+            #lists of ids and the corners beloning to each ids
+            corners, ids, rejectedImgPoints = aruco.detectMarkers(cam_feed, aruco_dict, parameters=parameters)
+
+            #cam_feed = aruco.drawDetectedMarkers(cam_feed, corners,ids,(255,255,0))
+            cameraMatrix = np.array([[1.3953673275755928e+03, 0, 9.9285445205853750e+02], [0,1.3880458574466945e+03, 5.3905119245877574e+02],[ 0., 0., 1.]])
+            distCoeffs = np.array([5.7392039180004371e-02, -3.4983260309560962e-02,-2.5933903577082485e-03, 3.4269688895033714e-03,-1.8891849772162170e-01 ])
+
+            if np.all(ids != None):
+                for i in range(0,int(ids.size)):
+                    if (ids[i]==2):
+
+                        rvec, tvec,_ = aruco.estimatePoseSingleMarkers(corners[i], 0.05, cameraMatrix, distCoeffs) #Estimate pose of each marker and return the values rvet and tvec---different from camera coefficients
+                        (rvec-tvec).any() # get rid of that nasty numpy value array error
+                        
+                        #aruco.drawAxis(cam_feed, cameraMatrix, distCoeffs, rvec[0], tvec[0], 0.1) #Draw Axis
+                        #aruco.drawDetectedMarkers(cam_feed, corners) #Draw A square around the markers
+                        aruco_x_coor = (corners[i][0][0][0] + corners[i][0][1][0] + corners[i][0][2][0] + corners[i][0][3][0]) / 4
+                        aruco_y_coor = (corners[i][0][0][1] + corners[i][0][1][1] + corners[i][0][2][1] + corners[i][0][3][1]) / 4
+
+                        aruco_y_coor = self.height - aruco_y_coor
+                        found = 1
+                        transform_dict = {
+                                "state" : found,
+                                "x" : aruco_x_coor,
+                                "y" : aruco_y_coor,
+                                }
+                        return (transform_dict)
+                    else:
+                        found = 0
+                        transform_dict = {
+                                "state" : found,
+                                "x" : 0,
+                                "y" : 0,
+                                }
+                        return (transform_dict)
+            else:
+                found = 0
+                transform_dict = {
+                        "state" : found,
+                        "x" : 0,
+                        "y" : 0,
+                        }
+                return (transform_dict)
+                        
 
 
     def show_frame(self):
@@ -369,10 +419,11 @@ if __name__ == '__main__':
     map = map_capture(0)
 
     while 1:
-        print(map.get_transform())
+        map.get_transform()
         map.get_new_frame()
         map.show_frame()
 
+        print(map.get_destination_coor())
         ret, frame = map.get_webcam_feed()
         if (ret==1):
 
