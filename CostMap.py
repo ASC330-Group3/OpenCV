@@ -15,7 +15,7 @@ class map_capture():
     def __init__(self,camera_option):
         self.camera_option = camera_option
         self.video = cv2.VideoCapture(self.camera_option)
-        self.video.set(cv2.CAP_PROP_BUFFERSIZE, 1);
+        
         self.video.set(cv2.CAP_PROP_AUTOFOCUS, 0)
         self.width = self.video.get(cv2.CAP_PROP_FRAME_WIDTH)   # float
         self.height = self.video.get(cv2.CAP_PROP_FRAME_HEIGHT) # float
