@@ -14,8 +14,7 @@ import time
 class map_capture():
     def __init__(self,camera_option):
         self.camera_option = camera_option
-        self.video = cv2.VideoCapture(self.camera_option)
-        
+        self.video = cv2.VideoCapture(self.camera_option)        
         self.video.set(cv2.CAP_PROP_AUTOFOCUS, 0)
         self.width = self.video.get(cv2.CAP_PROP_FRAME_WIDTH)   # float
         self.height = self.video.get(cv2.CAP_PROP_FRAME_HEIGHT) # float
@@ -23,7 +22,9 @@ class map_capture():
 
         
         ret, self.aruco_frame = self.video.read()
-        
+        self.smooth_plat_coor_x = [0,0,0,0,0]
+        self.smooth_plat_coor_y = [0,0,0,0,0]
+        self.smooth_plat_angle = [0,0,0,0,0]
 #        self.video.set(cv2.CAP_PROP_FRAME_WIDTH, 1280) # set the resolution - 640,480
 #        self.video.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
@@ -116,7 +117,6 @@ class map_capture():
 
                     cv2.circle(self.aruco_frame,(platform_center_x,platform_center_y), 1, (0,0,255), -1)
 
-
                     #Draw rotated rectangle
                     angle = -z#angle_offset
                     x0 = platform_center_x
@@ -139,15 +139,32 @@ class map_capture():
 
                     cv2.fillPoly(self.aruco_frame,[self.rect_corners],(0,0,0))
 
-                    ###### DRAW ID #####
-                    #cv2.putText(frame, str(x) + "," + str(y), (int(x)+20,int(y)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0),2,cv2.LINE_AA)
-                    #cv2.putText(self.aruco_frame, str((z/math.pi)*180), (int(x_coor)+20,int(y_coor)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0),2,cv2.LINE_AA)
-                    # Display the resulting frame
-                    #return angle, x , y
+
                     found = 1
 
                     #The costmap image is flipped along the x -axis for screen coordinates:
                     platform_center_y = self.height - platform_center_y
+                    
+                    if (self.smooth_plat_coor_x[1]==0):
+                        self.smooth_plat_coor_x.clear()
+                        for i in range(5):
+                            self.smooth_plat_coor_x.append(platform_center_x)
+                            self.smooth_plat_coor_y.append(platform_center_y)
+                            self.smooth_plat_angle.append(z)
+                    else:
+                        self.smooth_plat_coor_x.append(platform_center_x)
+                        self.smooth_plat_coor_y.append(platform_center_y)
+                        self.smooth_plat_angle.append(z)
+                        self.smooth_plat_coor_x.pop(1)
+                        self.smooth_plat_coor_y.pop(1)
+                        self.smooth_plat_angle.pop(1)
+                        
+                        platform_center_x = max(set(self.smooth_plat_coor_x), key=self.smooth_plat_coor_x.count)
+                        platform_center_y = max(set(self.smooth_plat_coor_y), key=self.smooth_plat_coor_y.count)
+                        z = max(set(self.smooth_plat_angle), key=self.smooth_plat_angle.count)
+                        
+                    
+                    
 
                     transform_dict = {
                             "state" : found,
@@ -349,7 +366,7 @@ class map_capture():
         self.video.release()
 
 if __name__ == '__main__':
-    map = map_capture(1)
+    map = map_capture(0)
 
     while 1:
         print(map.get_transform())
