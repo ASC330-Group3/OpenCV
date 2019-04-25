@@ -238,7 +238,7 @@ class map_capture():
         img= arm_ROI.copy()
         hsv_frame = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
 
-        cv2.imshow("hsv",hsv_frame)
+        #cv2.imshow("hsv",hsv_frame)
 
         cX = -1
         cY = -1
@@ -403,7 +403,82 @@ class map_capture():
                         "y" : 0,
                         }
                 return (transform_dict)
+        
+    def get_station_coor(self):
+        aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_250)
+        parameters =  aruco.DetectorParameters_create()
+        ret, cam_feed = self.video.read()
+
+        if (ret == True):
+
+            #lists of ids and the corners beloning to each ids
+            corners, ids, rejectedImgPoints = aruco.detectMarkers(cam_feed, aruco_dict, parameters=parameters)
+
+            #cam_feed = aruco.drawDetectedMarkers(cam_feed, corners,ids,(255,255,0))
+            cameraMatrix = np.array([[1.3953673275755928e+03, 0, 9.9285445205853750e+02], [0,1.3880458574466945e+03, 5.3905119245877574e+02],[ 0., 0., 1.]])
+            distCoeffs = np.array([5.7392039180004371e-02, -3.4983260309560962e-02,-2.5933903577082485e-03, 3.4269688895033714e-03,-1.8891849772162170e-01 ])
+
+            if np.all(ids != None):
+                for i in range(0,int(ids.size)):
+                    if (ids[i]==4):
+
+                        rvec, tvec,_ = aruco.estimatePoseSingleMarkers(corners[i], 0.05, cameraMatrix, distCoeffs) #Estimate pose of each marker and return the values rvet and tvec---different from camera coefficients
+                        (rvec-tvec).any() # get rid of that nasty numpy value array error
                         
+                        #aruco.drawAxis(cam_feed, cameraMatrix, distCoeffs, rvec[0], tvec[0], 0.1) #Draw Axis
+                        #aruco.drawDetectedMarkers(cam_feed, corners) #Draw A square around the markers
+                        aruco_x_coor = (corners[i][0][0][0] + corners[i][0][1][0] + corners[i][0][2][0] + corners[i][0][3][0]) / 4
+                        aruco_y_coor = (corners[i][0][0][1] + corners[i][0][1][1] + corners[i][0][2][1] + corners[i][0][3][1]) / 4
+
+
+                        #convert arena coordinates to mm
+                        #conversion_factor = (math.sqrt((abs(corners[i][0][0][0] - corners[i][0][1][0]))**2+(abs(corners[i][0][0][1] - corners[i][0][1][1]))**2))/aruco_dimensions
+                        conversion_factor = 0.21242645786248002
+                        R = np.zeros(shape=(3,3))
+                        cv2.Rodrigues(rvec[i-1  ], R, jacobian = 0)
+                        sy = math.sqrt(R[0,0] * R[0,0] +  R[1,0] * R[1,0])
+
+                        singular = sy < 1e-6
+
+                        if  not singular :
+                            z = math.atan2(R[1,0], R[0,0])
+                        else :
+                            z = 0
+
+                        z = (-z)
+
+
+                        distance_to_station = self.__get_distance_from_coor(500,0,0,conversion_factor)
+                        angle_offset = 0
+                        station_centre_x,station_centre_y = self.__transform_coordinates(aruco_x_coor,aruco_y_coor,distance_to_station,z,angle_offset)
+
+                        cv2.circle(cam_feed,(station_centre_x,station_centre_y),5,(0,255,0),-1)
+                        #cv2.imshow("cam feed",cam_feed)
+
+                        station_centre_y = self.height - station_centre_y
+                        found = 1
+                        transform_dict = {
+                                "state" : found,
+                                "x" : station_centre_x,
+                                "y" : station_centre_y,
+                                }
+                        return (transform_dict)
+                    else:
+                        found = 0
+                        transform_dict = {
+                                "state" : found,
+                                "x" : 0,
+                                "y" : 0,
+                                }
+                        return (transform_dict)
+            else:
+                found = 0
+                transform_dict = {
+                        "state" : found,
+                        "x" : 0,
+                        "y" : 0,
+                        }
+                return (transform_dict)
 
 
     def show_frame(self):
@@ -423,7 +498,7 @@ if __name__ == '__main__':
         map.get_new_frame()
         map.show_frame()
 
-        print(map.get_destination_coor())
+        print(map.get_station_coor())
         ret, frame = map.get_webcam_feed()
         if (ret==1):
 
