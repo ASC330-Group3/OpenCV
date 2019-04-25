@@ -21,13 +21,14 @@ class map_capture():
         self.height = self.video.get(cv2.CAP_PROP_FRAME_HEIGHT) # float
         self.rect_corners = np.array([[0,0],[0,0],[0,0],[0,0]])
 
-
-        ret, self.aruco_frame = self.check_cam_get_frame()
+        
+        ret, self.aruco_frame = self.video.read()
+        
 #        self.video.set(cv2.CAP_PROP_FRAME_WIDTH, 1280) # set the resolution - 640,480
 #        self.video.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
     def get_webcam_feed(self):
-        ret,webcam_feed = self.check_cam_get_frame()
+        ret,webcam_feed = self.video.read()
 
         if (ret == 0):
             return(ret,0)
@@ -52,7 +53,7 @@ class map_capture():
 
     def get_transform(self):
 
-        ret, self.aruco_frame = self.check_cam_get_frame()
+        ret, self.aruco_frame = self.video.read()
 
         gray = cv2.cvtColor(self.aruco_frame, cv2.COLOR_BGR2GRAY)
         retval, gray = cv2.threshold(gray,250,255,cv2.THRESH_BINARY)
@@ -172,25 +173,12 @@ class map_capture():
 ##############################################################################################################
 
 
-    def check_cam_get_frame(self):
+    def reconnect_camera(self):
         
-        while True:
-            ret, frame = self.video.read()
-            if self.video.isOpened():
-                if not ret:
-                    print("Camera is disconnected!")
-                    
-                    self.video.release()
-                    time.sleep(0.10)
-                    
-                else:
-                    return (ret,frame.copy())
-                    break
-            else:
-                self.video.release()
-                
-                time.sleep(0.10)
-                self.video = cv2.VideoCapture(self.camera_option)
+        self.video.release()
+        
+        time.sleep(0.10)
+        self.video = cv2.VideoCapture(self.camera_option)
                 
     
     def __get_distance_from_coor(self,x,y,offset_distance,conversion_factor):
@@ -263,7 +251,7 @@ class map_capture():
 
         aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_250)
         parameters =  aruco.DetectorParameters_create()
-        ret, arm_feed = self.check_cam_get_frame()
+        ret, arm_feed = self.video.read()
 
         if (ret == True):
 
@@ -353,7 +341,7 @@ if __name__ == '__main__':
     map = map_capture(1)
 
     while 1:
-        map.check_cam_get_frame()
+        
         map.get_new_frame()
         map.show_frame()
 
@@ -362,6 +350,8 @@ if __name__ == '__main__':
 
             cv2.imshow("webcam feed",frame)
             print(map.arm_pickup_coor(2))
+        else:
+            map.reconnect_camera()
         k = cv2.waitKey(1) & 0xff
         #Press escape to close program and take a picture
         if k == 27 :
