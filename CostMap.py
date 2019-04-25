@@ -121,7 +121,7 @@ class map_capture():
                     angle = -z#angle_offset
                     x0 = platform_center_x
                     y0 = platform_center_y
-                    height = 360*scaling_factor
+                    height = 410*scaling_factor
                     width = 420*scaling_factor
                     b = math.cos(angle) * 0.7
                     a = math.sin(angle) * 0.7
@@ -156,6 +156,17 @@ class map_capture():
                             "angle" : z
                             }
 
+                    return (transform_dict)
+                else:
+                    cv2.fillPoly(self.aruco_frame,[self.rect_corners],(0,0,0))
+
+                    found = 0
+                    transform_dict = {
+                                "state" : found,
+                                "x" : 0,
+                                "y" : 0,
+                                "angle" : 0
+                                }
                     return (transform_dict)
         else:
             cv2.fillPoly(self.aruco_frame,[self.rect_corners],(0,0,0))
@@ -341,7 +352,7 @@ if __name__ == '__main__':
     map = map_capture(1)
 
     while 1:
-        
+        print(map.get_transform())
         map.get_new_frame()
         map.show_frame()
 
@@ -349,7 +360,7 @@ if __name__ == '__main__':
         if (ret==1):
 
             cv2.imshow("webcam feed",frame)
-            print(map.arm_pickup_coor(2))
+            #print(map.arm_pickup_coor(2))
         else:
             map.reconnect_camera()
         k = cv2.waitKey(1) & 0xff
