@@ -244,7 +244,7 @@ class map_capture():
                     transform_dict.update(update)
                 
             
-                if (ids[i][0]==8):
+                if (ids[i][0]==6):
 
                     rvec, tvec,_ = aruco.estimatePoseSingleMarkers(corners[i], 0.05, cameraMatrix, distCoeffs) #Estimate pose of each marker and return the values rvet and tvec---different from camera coefficients
                     (rvec-tvec).any() # get rid of that nasty numpy value array error
