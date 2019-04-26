@@ -156,7 +156,7 @@ class map_capture():
                     #The costmap image is flipped along the x -axis for screen coordinates:
                     platform_center_y = self.height - platform_center_y
                     
-                    if (self.smooth_plat_coor_x[1]==0):
+                    if (self.smooth_plat_coor_x[0]==0):
                         self.smooth_plat_coor_x = []
                         for k in range(5):
                             self.smooth_plat_coor_x.append(platform_center_x)
@@ -269,7 +269,7 @@ class map_capture():
                     }
             transform_dict.update(update)
         
-        print(transform_dict)
+        #print(transform_dict)
         return (transform_dict)
 
 
