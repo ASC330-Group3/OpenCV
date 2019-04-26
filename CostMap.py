@@ -22,9 +22,9 @@ class map_capture():
 
         
         ret, self.aruco_frame = self.video.read()
-        self.smooth_plat_coor_x = []
-        self.smooth_plat_coor_y = []
-        self.smooth_plat_angle = []
+        self.smooth_plat_coor_x = [0]
+        self.smooth_plat_coor_y = [0]
+        self.smooth_plat_angle = [0]
 #        self.video.set(cv2.CAP_PROP_FRAME_WIDTH, 1280) # set the resolution - 640,480
 #        self.video.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
