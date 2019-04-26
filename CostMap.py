@@ -22,9 +22,9 @@ class map_capture():
 
         
         ret, self.aruco_frame = self.video.read()
-        self.smooth_plat_coor_x = [0]
-        self.smooth_plat_coor_y = [0]
-        self.smooth_plat_angle = [0]
+        #self.smooth_plat_coor_x = [0]
+        #self.smooth_plat_coor_y = [0]
+        #self.smooth_plat_angle = [0]
 #        self.video.set(cv2.CAP_PROP_FRAME_WIDTH, 1280) # set the resolution - 640,480
 #        self.video.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
@@ -83,7 +83,7 @@ class map_capture():
         self.aruco_frame = aruco.drawDetectedMarkers(self.aruco_frame, corners,ids,(255,255,0))
         cameraMatrix = np.array([[1.3953673275755928e+03, 0, 9.9285445205853750e+02], [0,1.3880458574466945e+03, 5.3905119245877574e+02],[ 0., 0., 1.]])
         distCoeffs = np.array([5.7392039180004371e-02, -3.4983260309560962e-02,-2.5933903577082485e-03, 3.4269688895033714e-03,-1.8891849772162170e-01 ])
-        if np.all(ids != None):
+        if np.all(ids is not None):
             for i in range(0,int(ids.size)):
                 
                 if (ids[i][0]==0):
@@ -181,7 +181,7 @@ class map_capture():
                         #platform_center_y = max(set(self.smooth_plat_coor_y), key=self.smooth_plat_coor_y.count)
                         #z = max(set(self.smooth_plat_angle), key=self.smooth_plat_angle.count)
                         
-                    print(self.smooth_plat_angle)
+                    
                     update = {"state" : 1,
                             "x" : platform_center_x,
                             "y" : platform_center_y,
