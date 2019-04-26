@@ -22,9 +22,9 @@ class map_capture():
 
         
         ret, self.aruco_frame = self.video.read()
-        self.smooth_plat_coor_x = [0,0,0,0,0]
-        self.smooth_plat_coor_y = [0,0,0,0,0]
-        self.smooth_plat_angle = [0,0,0,0,0]
+        self.smooth_plat_coor_x = []
+        self.smooth_plat_coor_y = []
+        self.smooth_plat_angle = []
 #        self.video.set(cv2.CAP_PROP_FRAME_WIDTH, 1280) # set the resolution - 640,480
 #        self.video.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
@@ -157,7 +157,7 @@ class map_capture():
                     platform_center_y = self.height - platform_center_y
                     
                     if (self.smooth_plat_coor_x[1]==0):
-                        self.smooth_plat_coor_x.clear()
+                        self.smooth_plat_coor_x = []
                         for k in range(5):
                             self.smooth_plat_coor_x.append(platform_center_x)
                             self.smooth_plat_coor_y.append(platform_center_y)
@@ -442,14 +442,15 @@ if __name__ == '__main__':
     map = map_capture(1)
 
     while 1:
-        map.get_transform()
-        map.get_new_frame()
-        map.show_frame()
+        
+        
 
       
         ret, frame = map.get_webcam_feed()
         if (ret==1):
-
+            map.get_transform()
+            map.get_new_frame()
+            map.show_frame()
             cv2.imshow("webcam feed",frame)
             #print(map.arm_pickup_coor(2))
         else:
