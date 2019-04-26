@@ -48,7 +48,7 @@ class map_capture():
         #cv2.imshow('flip',frame)
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         retval, thresh = cv2.threshold(gray,200,255,cv2.THRESH_BINARY)
-        cv2.imshow("CostMap",thresh)
+        #cv2.imshow("CostMap",thresh)
 
         return ((thresh.flatten()/2.55).astype(int))
 
@@ -117,12 +117,12 @@ class map_capture():
 #
 #                        z = 0
 #
-#                    z = (-z)
+                   
 
                     x_ref = abs(corners[i][0][0][0] - corners[i][0][1][0])
                     y_ref = abs(corners[i][0][0][1] - corners[i][0][1][1])
                     z = math.atan(y_ref/x_ref)
-                    
+                    z = (-z)
                     distance_aruco_to_platform_centre = 120*scaling_factor#math.sqrt((((370/2)-distance_to_edge)*scaling_factor)**2 + (((420/2)-distance_to_edge)*scaling_factor)**2)
                     angle_offset = 0#-0.722191331499988#math.atan(((420/2)*scaling_factor)/((370/2)*scaling_factor)) - (math.pi)/2
 
