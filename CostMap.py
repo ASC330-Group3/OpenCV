@@ -48,7 +48,7 @@ class map_capture():
         #cv2.imshow('flip',frame)
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         retval, thresh = cv2.threshold(gray,200,255,cv2.THRESH_BINARY)
-        #cv2.imshow("CostMap",thresh)
+        cv2.imshow("CostMap",thresh)
 
         return ((thresh.flatten()/2.55).astype(int))
 
@@ -104,21 +104,25 @@ class map_capture():
                     #pts = pts.reshape((-1,1,2))
                     #cv2.polylines(self.aruco_frame,[pts],True,(0,255,255))
                     #print(scaling_factor)
-                    rotM = np.zeros(shape=(3,3))
-                    cv2.Rodrigues(rvec[0], rotM, jacobian = 0)
-                    R = rotM
-                    sy = math.sqrt(R[0,0] * R[0,0] +  R[1,0] * R[1,0])
+                    #rotM = np.zeros(shape=(3,3))
+                    #cv2.Rodrigues(rvec[0], rotM, jacobian = 0)
+                    #R = rotM
+                    #sy = math.sqrt(R[0,0] * R[0,0] +  R[1,0] * R[1,0])
 
-                    singular = sy < 1e-6
+#                    singular = sy < 1e-6
+#
+#                    if  not singular :
+#                        z = math.atan2(R[1,0], R[0,0])
+#                    else :
+#
+#                        z = 0
+#
+#                    z = (-z)
 
-                    if  not singular :
-                        z = math.atan2(R[1,0], R[0,0])
-                    else :
-
-                        z = 0
-
-                    z = (-z)
-
+                    x_ref = abs(corners[i][0][0][0] - corners[i][0][1][0])
+                    y_ref = abs(corners[i][0][0][1] - corners[i][0][1][1])
+                    z = math.atan(y_ref/x_ref)
+                    
                     distance_aruco_to_platform_centre = 120*scaling_factor#math.sqrt((((370/2)-distance_to_edge)*scaling_factor)**2 + (((420/2)-distance_to_edge)*scaling_factor)**2)
                     angle_offset = 0#-0.722191331499988#math.atan(((420/2)*scaling_factor)/((370/2)*scaling_factor)) - (math.pi)/2
 
@@ -156,25 +160,28 @@ class map_capture():
                     #The costmap image is flipped along the x -axis for screen coordinates:
                     platform_center_y = self.height - platform_center_y
                     
-                    if (self.smooth_plat_coor_x[0]==0):
-                        self.smooth_plat_coor_x = []
-                        for k in range(5):
-                            self.smooth_plat_coor_x.append(platform_center_x)
-                            self.smooth_plat_coor_y.append(platform_center_y)
-                            self.smooth_plat_angle.append(z)
-                    else:
-                        self.smooth_plat_coor_x.append(platform_center_x)
-                        self.smooth_plat_coor_y.append(platform_center_y)
-                        self.smooth_plat_angle.append(z)
-                        self.smooth_plat_coor_x.pop(1)
-                        self.smooth_plat_coor_y.pop(1)
-                        self.smooth_plat_angle.pop(1)
+#                    if (self.smooth_plat_coor_x[0]==0):
+#                        self.smooth_plat_coor_x = []
+#                        for k in range(10):
+#                            self.smooth_plat_coor_x.append(platform_center_x)
+#                            self.smooth_plat_coor_y.append(platform_center_y)
+#                            self.smooth_plat_angle.append(z)
+#                    else:
+#                        self.smooth_plat_coor_x.append(platform_center_x)
+#                        self.smooth_plat_coor_y.append(platform_center_y)
+#                        self.smooth_plat_angle.append(z)
+#                        self.smooth_plat_coor_x.pop(0)
+#                        self.smooth_plat_coor_y.pop(0)
+#                        self.smooth_plat_angle.pop(0)
+#                        
+#                        platform_center_x = sum(self.smooth_plat_coor_x)/len(self.smooth_plat_coor_x)
+#                        platform_center_y = sum(self.smooth_plat_coor_y)/len(self.smooth_plat_coor_y)
+#                        z = sum(self.smooth_plat_angle)/len(self.smooth_plat_angle)
+                        #platform_center_x = max(set(self.smooth_plat_coor_x), key=self.smooth_plat_coor_x.count)
+                        #platform_center_y = max(set(self.smooth_plat_coor_y), key=self.smooth_plat_coor_y.count)
+                        #z = max(set(self.smooth_plat_angle), key=self.smooth_plat_angle.count)
                         
-                        platform_center_x = max(set(self.smooth_plat_coor_x), key=self.smooth_plat_coor_x.count)
-                        platform_center_y = max(set(self.smooth_plat_coor_y), key=self.smooth_plat_coor_y.count)
-                        z = max(set(self.smooth_plat_angle), key=self.smooth_plat_angle.count)
-                        
-                    
+                    print(self.smooth_plat_angle)
                     update = {"state" : 1,
                             "x" : platform_center_x,
                             "y" : platform_center_y,
@@ -439,15 +446,16 @@ class map_capture():
         self.video.release()
 
 if __name__ == '__main__':
-    map = map_capture(0)
+    map = map_capture(1)
 
     while 1:
         
         
-
+        #map.get_transform()
       
         ret, frame = map.get_webcam_feed()
         if (ret==1):
+            
             map.get_transform()
             map.get_new_frame()
             map.show_frame()
@@ -455,6 +463,7 @@ if __name__ == '__main__':
             #print(map.arm_pickup_coor(2))
         else:
             map.reconnect_camera()
+            print('Camera not connected')
         k = cv2.waitKey(1) & 0xff
         #Press escape to close program and take a picture
         if k == 27 :
