@@ -77,7 +77,7 @@ class map_capture():
         parameters =  aruco.DetectorParameters_create()
 
         #lists of ids and the corners beloning to each ids
-        corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
+        corners, ids, rejectedImgPoints = aruco.detectMarkers(self.aruco_frame, aruco_dict, parameters=parameters)
         #print(corners)
 
         self.aruco_frame = aruco.drawDetectedMarkers(self.aruco_frame, corners,ids,(255,255,0))
@@ -121,8 +121,12 @@ class map_capture():
 
                     x_ref = (corners[i][0][0][0] - corners[i][0][1][0])
                     y_ref = (corners[i][0][0][1] - corners[i][0][1][1])
-                    z = math.atan(y_ref/x_ref)
+                    if (abs(x_ref) < 1e-6):
+                        x_ref=0.0000001
+                    
+                    z = math.atan2(y_ref,x_ref)
                     z = (-z)
+                    print(math.degrees(z))
                     distance_aruco_to_platform_centre = 120*scaling_factor#math.sqrt((((370/2)-distance_to_edge)*scaling_factor)**2 + (((420/2)-distance_to_edge)*scaling_factor)**2)
                     angle_offset = 0#-0.722191331499988#math.atan(((420/2)*scaling_factor)/((370/2)*scaling_factor)) - (math.pi)/2
 
