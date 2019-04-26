@@ -137,8 +137,8 @@ class map_capture():
                     y0 = platform_center_y
                     height = 410*scaling_factor
                     width = 420*scaling_factor
-                    b = math.cos(angle) * 0.7
-                    a = math.sin(angle) * 0.7
+                    b = math.cos(angle) * 0.9
+                    a = math.sin(angle) * 0.9
                     pt0 = (int(x0 - a * height - b * width), int(y0 + b * height - a * width))
                     pt1 = (int(x0 + a * height - b * width), int(y0 - b * height - a * width))
                     pt2 = (int(2 * x0 - pt0[0]), int(2 * y0 - pt0[1]))
@@ -190,7 +190,7 @@ class map_capture():
                 if (ids[i][0]==4):
 
                     rvec, tvec,_ = aruco.estimatePoseSingleMarkers(corners[i], 0.05, cameraMatrix, distCoeffs) #Estimate pose of each marker and return the values rvet and tvec---different from camera coefficients
-                    (rvec-tvec).any() # get rid of that nasty numpy value array error
+                    (rvec-tvec).any() # get rid of that nasty numpy value arrayp error
                     
                     #aruco.drawAxis(cam_feed, cameraMatrix, distCoeffs, rvec[0], tvec[0], 0.1) #Draw Axis
                     #aruco.drawDetectedMarkers(cam_feed, corners) #Draw A square around the markers
@@ -439,7 +439,7 @@ class map_capture():
         self.video.release()
 
 if __name__ == '__main__':
-    map = map_capture(1)
+    map = map_capture(0)
 
     while 1:
         
