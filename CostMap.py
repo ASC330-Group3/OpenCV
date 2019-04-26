@@ -68,7 +68,7 @@ class map_capture():
                             }
         
         ret, self.aruco_frame = self.video.read()
-        cam_feed = self.aruco_frame.copy()
+        #cam_feed = self.aruco_frame.copy()
 
         gray = cv2.cvtColor(self.aruco_frame, cv2.COLOR_BGR2GRAY)
         retval, gray = cv2.threshold(gray,250,255,cv2.THRESH_BINARY)
@@ -105,7 +105,7 @@ class map_capture():
                     #cv2.polylines(self.aruco_frame,[pts],True,(0,255,255))
                     #print(scaling_factor)
                     rotM = np.zeros(shape=(3,3))
-                    cv2.Rodrigues(rvec[i-1  ], rotM, jacobian = 0)
+                    cv2.Rodrigues(rvec[0], rotM, jacobian = 0)
                     R = rotM
                     sy = math.sqrt(R[0,0] * R[0,0] +  R[1,0] * R[1,0])
 
@@ -153,9 +153,6 @@ class map_capture():
 
                     cv2.fillPoly(self.aruco_frame,[self.rect_corners],(0,0,0))
 
-
-                    found = 1
-
                     #The costmap image is flipped along the x -axis for screen coordinates:
                     platform_center_y = self.height - platform_center_y
                     
@@ -178,24 +175,18 @@ class map_capture():
                         z = max(set(self.smooth_plat_angle), key=self.smooth_plat_angle.count)
                         
                     
-                    update = {"state" : found,
+                    update = {"state" : 1,
                             "x" : platform_center_x,
                             "y" : platform_center_y,
                             "angle" : z}
 
                     transform_dict.update(update)
 
+                    
                 else:
                     cv2.fillPoly(self.aruco_frame,[self.rect_corners],(0,0,0))
 
-                    update = {"state" : 0,
-                            "x" : 0,
-                            "y" : 0,
-                            "angle" : 0}
-
-                    transform_dict.update(update)
-                
-              
+            
                 if (ids[i][0]==4):
 
                     rvec, tvec,_ = aruco.estimatePoseSingleMarkers(corners[i], 0.05, cameraMatrix, distCoeffs) #Estimate pose of each marker and return the values rvet and tvec---different from camera coefficients
@@ -231,24 +222,18 @@ class map_capture():
 
                     station_centre_y = self.height - station_centre_y
                     
+                    
                     update = {
                             "station_state" : 1,
                             "station_x" : station_centre_x,
                             "station_y" : station_centre_y,
                             }
                     
-                    transform_dict.update(update)
-                   
-                else:
-                    update = {
-                            "station_state" : 0,
-                            "station_x" : 0,
-                            "station_y" : 0,
-                            }
+                    
                     transform_dict.update(update)
                 
             
-                if (ids[i][0]==2):
+                if (ids[i][0]==8):
 
                     rvec, tvec,_ = aruco.estimatePoseSingleMarkers(corners[i], 0.05, cameraMatrix, distCoeffs) #Estimate pose of each marker and return the values rvet and tvec---different from camera coefficients
                     (rvec-tvec).any() # get rid of that nasty numpy value array error
@@ -266,15 +251,6 @@ class map_capture():
                             "destination_y" : aruco_y_coor,
                             }
                     transform_dict.update(update)
-                else:
-                    found = 0
-                    transform_dict = {
-                            "destination_state" : found,
-                            "destination_x" : 0,
-                            "destination_y" : 0,
-                            }
-                    transform_dict.update(update)
-                
         else:
             cv2.fillPoly(self.aruco_frame,[self.rect_corners],(0,0,0))
 
@@ -292,7 +268,8 @@ class map_capture():
                         "destination_y":0,
                     }
             transform_dict.update(update)
-            
+        
+        print(transform_dict)
         return (transform_dict)
 
 
@@ -465,7 +442,7 @@ if __name__ == '__main__':
     map = map_capture(1)
 
     while 1:
-        print(map.get_transform())
+        map.get_transform()
         map.get_new_frame()
         map.show_frame()
 
