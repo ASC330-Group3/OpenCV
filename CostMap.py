@@ -3,6 +3,7 @@
 Created on Wed Feb 27 15:04:42 2019
 @author: Samuel Gibbs
 """
+#git test
 
 import cv2
 import cv2.aruco as aruco
@@ -133,6 +134,7 @@ class map_capture():
                     platform_center_y = int((aruco_y_coor + y_offset) - distance_aruco_to_platform_centre*math.sin(z-angle_offset))
 
                     cv2.circle(self.aruco_frame,(platform_center_x,platform_center_y), 1, (0,0,255), -1)
+
 
                     #Draw rotated rectangle
                     angle = -z#angle_offset
