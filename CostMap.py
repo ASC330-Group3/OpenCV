@@ -65,10 +65,26 @@ class map_capture():
                             "destination_state":0,
                             "destination_x":0,
                             "destination_y":0,
+                            "red_state": 0,
+                            "red_x":0,
+                            "red_y":0,
+                            "green_state":0,
+                            "green_x":0,
+                            "green_y":0,
+                            "blue_state":0,
+                            "blue_x":0,
+                            "blue_y":0,
+                            "arm_state":0,
+                            "arm_base_x":0,
+                            "arm_base_y":0,
+                            
                             }
         
         ret, self.aruco_frame = self.video.read()
-        #cam_feed = self.aruco_frame.copy()
+        if (ret == 0):
+            return (transform_dict)
+        
+        cam_feed = self.aruco_frame.copy()
 
         gray = cv2.cvtColor(self.aruco_frame, cv2.COLOR_BGR2GRAY)
         retval, gray = cv2.threshold(gray,250,255,cv2.THRESH_BINARY)
@@ -99,25 +115,7 @@ class map_capture():
 
                     #convert arena coordinates to mm
                     #scaling_factor = (math.sqrt((abs(corners[i][0][0][0] - corners[i][0][1][0]))**2+(abs(corners[i][0][0][1] - corners[i][0][1][1]))**2))/aruco_dimensions
-                    scaling_factor = 0.21242645786248002
-                    #pts = np.array([[corners[i][0][0][0],(corners[i][0][0][1]]), [corners[i][0][1][0],corners[i][0][1][1]] , [corners[i][0][2][0],corners[i][0][2][1]] , [corners[i][0][3][0],corners[i][0][3][1]]], np.int32)
-                    #pts = pts.reshape((-1,1,2))
-                    #cv2.polylines(self.aruco_frame,[pts],True,(0,255,255))
-                    #print(scaling_factor)
-                    #rotM = np.zeros(shape=(3,3))
-                    #cv2.Rodrigues(rvec[0], rotM, jacobian = 0)
-                    #R = rotM
-                    #sy = math.sqrt(R[0,0] * R[0,0] +  R[1,0] * R[1,0])
-
-#                    singular = sy < 1e-6
-#
-#                    if  not singular :
-#                        z = math.atan2(R[1,0], R[0,0])
-#                    else :
-#
-#                        z = 0
-#
-                   
+                    scaling_factor = 0.21242645786248002           
 
                     x_ref = (corners[i][0][0][0] - corners[i][0][1][0])
                     y_ref = (corners[i][0][0][1] - corners[i][0][1][1])
@@ -126,16 +124,13 @@ class map_capture():
                     
                     z = math.atan2(y_ref,x_ref)
                     z = (-z)
-                    print(math.degrees(z))
+                    
                     distance_aruco_to_platform_centre = 120*scaling_factor#math.sqrt((((370/2)-distance_to_edge)*scaling_factor)**2 + (((420/2)-distance_to_edge)*scaling_factor)**2)
-                    angle_offset = 0#-0.722191331499988#math.atan(((420/2)*scaling_factor)/((370/2)*scaling_factor)) - (math.pi)/2
+                    angle_offset = 0#math.atan(((420/2)*scaling_factor)/((370/2)*scaling_factor)) - (math.pi)/2
 
                     y_offset = 0;
                     platform_center_x = int(aruco_x_coor + distance_aruco_to_platform_centre*math.cos(z-angle_offset))
                     platform_center_y = int((aruco_y_coor + y_offset) - distance_aruco_to_platform_centre*math.sin(z-angle_offset))
-
-
-                    #print(platform_center_x,platform_center_y)
 
                     cv2.circle(self.aruco_frame,(platform_center_x,platform_center_y), 1, (0,0,255), -1)
 
@@ -152,11 +147,6 @@ class map_capture():
                     pt2 = (int(2 * x0 - pt0[0]), int(2 * y0 - pt0[1]))
                     pt3 = (int(2 * x0 - pt1[0]), int(2 * y0 - pt1[1]))
 
-                    cv2.line(self.aruco_frame, pt0, pt1, (255, 255, 255), 1)
-                    cv2.line(self.aruco_frame, pt1, pt2, (255, 255, 255), 1)
-                    cv2.line(self.aruco_frame, pt2, pt3, (255, 255, 255), 1)
-                    cv2.line(self.aruco_frame, pt3, pt0, (255, 255, 255), 1)
-
                     self.rect_corners = np.array([[pt0],[pt1],[pt2],[pt3]])
 
                     cv2.fillPoly(self.aruco_frame,[self.rect_corners],(0,0,0))
@@ -164,27 +154,6 @@ class map_capture():
                     #The costmap image is flipped along the x -axis for screen coordinates:
                     platform_center_y = self.height - platform_center_y
                     
-#                    if (self.smooth_plat_coor_x[0]==0):
-#                        self.smooth_plat_coor_x = []
-#                        for k in range(10):
-#                            self.smooth_plat_coor_x.append(platform_center_x)
-#                            self.smooth_plat_coor_y.append(platform_center_y)
-#                            self.smooth_plat_angle.append(z)
-#                    else:
-#                        self.smooth_plat_coor_x.append(platform_center_x)
-#                        self.smooth_plat_coor_y.append(platform_center_y)
-#                        self.smooth_plat_angle.append(z)
-#                        self.smooth_plat_coor_x.pop(0)
-#                        self.smooth_plat_coor_y.pop(0)
-#                        self.smooth_plat_angle.pop(0)
-#                        
-#                        platform_center_x = sum(self.smooth_plat_coor_x)/len(self.smooth_plat_coor_x)
-#                        platform_center_y = sum(self.smooth_plat_coor_y)/len(self.smooth_plat_coor_y)
-#                        z = sum(self.smooth_plat_angle)/len(self.smooth_plat_angle)
-                        #platform_center_x = max(set(self.smooth_plat_coor_x), key=self.smooth_plat_coor_x.count)
-                        #platform_center_y = max(set(self.smooth_plat_coor_y), key=self.smooth_plat_coor_y.count)
-                        #z = max(set(self.smooth_plat_angle), key=self.smooth_plat_angle.count)
-                        
                     
                     update = {"state" : 1,
                             "x" : platform_center_x,
@@ -203,7 +172,7 @@ class map_capture():
                     rvec, tvec,_ = aruco.estimatePoseSingleMarkers(corners[i], 0.05, cameraMatrix, distCoeffs) #Estimate pose of each marker and return the values rvet and tvec---different from camera coefficients
                     (rvec-tvec).any() # get rid of that nasty numpy value arrayp error
                     
-                    #aruco.drawAxis(cam_feed, cameraMatrix, distCoeffs, rvec[0], tvec[0], 0.1) #Draw Axis
+                    #aruco.drawAxis(self.aruco_frame, cameraMatrix, distCoeffs, rvec[0], tvec[0], 0.1) #Draw Axis
                     #aruco.drawDetectedMarkers(cam_feed, corners) #Draw A square around the markers
                     aruco_x_coor = (corners[i][0][0][0] + corners[i][0][1][0] + corners[i][0][2][0] + corners[i][0][3][0]) / 4
                     aruco_y_coor = (corners[i][0][0][1] + corners[i][0][1][1] + corners[i][0][2][1] + corners[i][0][3][1]) / 4
@@ -212,20 +181,14 @@ class map_capture():
                     #convert arena coordinates to mm
                     #conversion_factor = (math.sqrt((abs(corners[i][0][0][0] - corners[i][0][1][0]))**2+(abs(corners[i][0][0][1] - corners[i][0][1][1]))**2))/aruco_dimensions
                     conversion_factor = 0.21242645786248002
-                    R = np.zeros(shape=(3,3))
                     
-                    cv2.Rodrigues(rvec[0], R, jacobian = 0)
-                    sy = math.sqrt(R[0,0] * R[0,0] +  R[1,0] * R[1,0])
-
-                    singular = sy < 1e-6
-
-                    if  not singular :
-                        z = math.atan2(R[1,0], R[0,0])
-                    else :
-                        z = 0
-
+                    x_ref = (corners[i][0][0][0] - corners[i][0][1][0])
+                    y_ref = (corners[i][0][0][1] - corners[i][0][1][1])
+                    if (abs(x_ref) < 1e-6):
+                        x_ref=0.0000001
+                    
+                    z = math.atan2(y_ref,x_ref)
                     z = (-z)
-
 
                     distance_to_station = self.__get_distance_from_coor(500,0,0,conversion_factor)
                     angle_offset = 0
@@ -262,6 +225,147 @@ class map_capture():
                             "destination_y" : aruco_y_coor,
                             }
                     transform_dict.update(update)
+                    
+                    
+                    
+                if(ids[i][0]==11):
+                    rvec, tvec,_ = aruco.estimatePoseSingleMarkers(corners[i], 0.05, cameraMatrix, distCoeffs) #Estimate pose of each marker and return the values rvet and tvec---different from camera coefficients
+                    (rvec-tvec).any() # get rid of that nasty numpy value arrayp error
+                    aruco_x_coor = (corners[i][0][0][0] + corners[i][0][1][0] + corners[i][0][2][0] + corners[i][0][3][0]) / 4
+                    aruco_y_coor = (corners[i][0][0][1] + corners[i][0][1][1] + corners[i][0][2][1] + corners[i][0][3][1]) / 4
+                    #convert arena coordinates to mm
+                    conversion_factor = (math.sqrt((abs(corners[i][0][0][0] - corners[i][0][1][0]))**2+(abs(corners[i][0][0][1] - corners[i][0][1][1]))**2))/80
+                    #conversion_factor =0.21242645786248002#coor per mm = 4.7mm to a coor
+                
+                    x_ref = (corners[i][0][0][0] - corners[i][0][1][0])
+                    y_ref = (corners[i][0][0][1] - corners[i][0][1][1])
+                    if (abs(x_ref) < 1e-6):
+                        x_ref=0.0000001
+                    
+                    z = math.atan2(y_ref,x_ref)
+                    z = (-z)
+
+                    distance_to_box = 100*conversion_factor
+                    angle_offset = -math.pi/2
+                    box_centre_x,box_centre_y = self.__transform_coordinates(aruco_x_coor,aruco_y_coor,distance_to_box,z,angle_offset)
+                    box_area = 80*(conversion_factor)
+                    red_x,red_y=self.__get_obj_pos(box_centre_x,box_centre_y,box_area,z,cam_feed.copy())
+
+                    red_y = self.height - red_y
+                    
+                    if (red_x != -1):
+                        update = {
+                            "red_state" : 1,
+                            "red_x" : red_x,
+                            "red_y" : red_y,
+                            }
+                    
+                        transform_dict.update(update)
+                
+                if(ids[i][0]==12):
+                    rvec, tvec,_ = aruco.estimatePoseSingleMarkers(corners[i], 0.05, cameraMatrix, distCoeffs) #Estimate pose of each marker and return the values rvet and tvec---different from camera coefficients
+                    (rvec-tvec).any() # get rid of that nasty numpy value arrayp error
+                    aruco_x_coor = (corners[i][0][0][0] + corners[i][0][1][0] + corners[i][0][2][0] + corners[i][0][3][0]) / 4
+                    aruco_y_coor = (corners[i][0][0][1] + corners[i][0][1][1] + corners[i][0][2][1] + corners[i][0][3][1]) / 4
+                    #convert arena coordinates to mm
+                    conversion_factor = (math.sqrt((abs(corners[i][0][0][0] - corners[i][0][1][0]))**2+(abs(corners[i][0][0][1] - corners[i][0][1][1]))**2))/80
+                    #conversion_factor =0.21242645786248002#coor per mm = 4.7mm to a coor
+                
+                    x_ref = (corners[i][0][0][0] - corners[i][0][1][0])
+                    y_ref = (corners[i][0][0][1] - corners[i][0][1][1])
+                    if (abs(x_ref) < 1e-6):
+                        x_ref=0.0000001
+                    
+                    z = math.atan2(y_ref,x_ref)
+                    z = (-z)
+
+                    distance_to_box = 100*conversion_factor
+                    angle_offset = -math.pi/2
+                    box_centre_x,box_centre_y = self.__transform_coordinates(aruco_x_coor,aruco_y_coor,distance_to_box,z,angle_offset)
+                    box_area = 80*(conversion_factor)
+                    red_x,red_y=self.__get_obj_pos(box_centre_x,box_centre_y,box_area,z,cam_feed.copy())
+
+                    red_y = self.height - red_y
+                    
+                    if (red_x != -1):
+                        update = {
+                            "green_state" : 1,
+                            "green_x" : red_x,
+                            "green_y" : red_y,
+                            }
+                    
+                        transform_dict.update(update)
+                        
+                if(ids[i][0]==13):
+                    rvec, tvec,_ = aruco.estimatePoseSingleMarkers(corners[i], 0.05, cameraMatrix, distCoeffs) #Estimate pose of each marker and return the values rvet and tvec---different from camera coefficients
+                    (rvec-tvec).any() # get rid of that nasty numpy value arrayp error
+                    aruco_x_coor = (corners[i][0][0][0] + corners[i][0][1][0] + corners[i][0][2][0] + corners[i][0][3][0]) / 4
+                    aruco_y_coor = (corners[i][0][0][1] + corners[i][0][1][1] + corners[i][0][2][1] + corners[i][0][3][1]) / 4
+                    #convert arena coordinates to mm
+                    marker_dimension = 80;
+                    conversion_factor = (math.sqrt((abs(corners[i][0][0][0] - corners[i][0][1][0]))**2+(abs(corners[i][0][0][1] - corners[i][0][1][1]))**2))/marker_dimension
+                    #conversion_factor =0.21242645786248002#coor per mm = 4.7mm to a coor
+                
+                    x_ref = (corners[i][0][0][0] - corners[i][0][1][0])
+                    y_ref = (corners[i][0][0][1] - corners[i][0][1][1])
+                    if (abs(x_ref) < 1e-6):
+                        x_ref=0.0000001
+                    
+                    z = math.atan2(y_ref,x_ref)
+                    z = (-z)
+
+                    distance_to_box = 100*conversion_factor
+                    angle_offset = -math.pi/2
+                    box_centre_x,box_centre_y = self.__transform_coordinates(aruco_x_coor,aruco_y_coor,distance_to_box,z,angle_offset)
+                    box_area = 80*(conversion_factor)
+                    red_x,red_y=self.__get_obj_pos(box_centre_x,box_centre_y,box_area,z,cam_feed.copy())
+
+                    red_y = self.height - red_y
+                    
+                    if (red_x != -1):
+                        update = {
+                            "blue_state" : 1,
+                            "blue_x" : red_x,
+                            "blue_y" : red_y,
+                            }
+                    
+                        transform_dict.update(update)
+                        
+                if(ids[i][0]==20):
+                    rvec, tvec,_ = aruco.estimatePoseSingleMarkers(corners[i], 0.05, cameraMatrix, distCoeffs) #Estimate pose of each marker and return the values rvet and tvec---different from camera coefficients
+                    (rvec-tvec).any() # get rid of that nasty numpy value arrayp error
+                    aruco_x_coor = (corners[i][0][0][0] + corners[i][0][1][0] + corners[i][0][2][0] + corners[i][0][3][0]) / 4
+                    aruco_y_coor = (corners[i][0][0][1] + corners[i][0][1][1] + corners[i][0][2][1] + corners[i][0][3][1]) / 4
+                    #convert arena coordinates to mm
+                    marker_dimension = 100
+                    conversion_factor = (math.sqrt((abs(corners[i][0][0][0] - corners[i][0][1][0]))**2+(abs(corners[i][0][0][1] - corners[i][0][1][1]))**2))/marker_dimension
+                    #conversion_factor =0.21242645786248002#coor per mm = 4.7mm to a coor
+                
+                    x_ref = (corners[i][0][0][0] - corners[i][0][1][0])
+                    y_ref = (corners[i][0][0][1] - corners[i][0][1][1])
+                    if (abs(x_ref) < 1e-6):
+                        x_ref=0.0000001
+                    
+                    z = math.atan2(y_ref,x_ref)
+                    z = (-z)
+
+                    distance_to_box = 130.5*conversion_factor
+                    angle_offset = -math.pi/2
+                    arm_base_x,arm_base_y = self.__transform_coordinates(aruco_x_coor,aruco_y_coor,distance_to_box,z,angle_offset)
+                 
+                    cv2.circle(self.aruco_frame,(arm_base_x,arm_base_y),5,(255,255,255),-1)
+                    
+                    arm_base_y = self.height - arm_base_y
+                    
+                    update = {
+                        "arm_state" : 1,
+                        "arm_base_x" : arm_base_x,
+                        "arm_base_y" : arm_base_y,
+                        }
+                    
+                    transform_dict.update(update)
+                    
+                        
         else:
             cv2.fillPoly(self.aruco_frame,[self.rect_corners],(0,0,0))
 
@@ -277,6 +381,19 @@ class map_capture():
                         "destination_state":0,
                         "destination_x":0,
                         "destination_y":0,
+                        "red_state": 0,
+                        "red_x":0,
+                        "red_y":0,
+                        "green_state":0,
+                        "green_x":0,
+                        "green_y":0,
+                        "blue_state":0,
+                        "blue_x":0,
+                        "blue_y":0,
+                        "arm_state":0,
+                        "arm_base_x":0,
+                        "arm_base_y":0,
+                        
                     }
             transform_dict.update(update)
         
@@ -286,6 +403,52 @@ class map_capture():
 
 ##############################################################################################################
 
+    def __get_obj_pos(self,box_centre_x,box_centre_y,box_area,angle,cam_feed):
+        
+        mask_ROI = np.zeros((int(self.height),int(self.width)), np.int8)
+
+
+         #Draw rotated rectangle
+        angle = -angle#angle_offset
+        x0 = box_centre_x
+        y0 = box_centre_y
+
+        b = math.cos(angle) * 0.5
+        a = math.sin(angle) * 0.5
+        pt0 = (int(x0 - a * box_area - b * box_area), int(y0 + b * box_area - a * box_area))
+        pt1 = (int(x0 + a * box_area - b * box_area), int(y0 - b * box_area - a * box_area))
+        pt2 = (int(2 * x0 - pt0[0]), int(2 * y0 - pt0[1]))
+        pt3 = (int(2 * x0 - pt1[0]), int(2 * y0 - pt1[1]))
+
+        rect_corners = np.array([[pt0],[pt1],[pt2],[pt3]])
+
+        cv2.fillPoly(mask_ROI,[rect_corners],(255,255,255))       
+
+        mask_ROI = cv2.inRange(mask_ROI, 1, 255)
+
+        output = cv2.bitwise_and(cam_feed,cam_feed, mask=mask_ROI)
+        
+        gray = cv2.cvtColor(output, cv2.COLOR_BGR2GRAY)
+        retval, thresh = cv2.threshold(gray,50,255,cv2.THRESH_BINARY)
+        
+        kernel = np.ones((5,5),np.uint8)
+        erosion = cv2.erode(thresh,kernel,iterations = 1)
+        dilation = cv2.dilate(erosion,kernel,iterations = 1)
+
+        if cv2.countNonZero(dilation) == 0:
+            return (-1,-1)
+        
+        else:
+            M = cv2.moments(dilation)
+
+            # calculate x,y coordinate of center
+            cX = int(M["m10"] / M["m00"])
+            cY = int(M["m01"] / M["m00"])
+            cv2.circle(output,(cX,cY),5,(0,255,0),-1)
+        #cv2.imshow("output",img)
+            return (cX,cY)
+
+      
 
     def reconnect_camera(self):
         
@@ -460,10 +623,10 @@ if __name__ == '__main__':
         ret, frame = map.get_webcam_feed()
         if (ret==1):
             
-            map.get_transform()
+            print(map.get_transform())
             map.get_new_frame()
             map.show_frame()
-            cv2.imshow("webcam feed",frame)
+            #cv2.imshow("webcam feed",frame)
             #print(map.arm_pickup_coor(2))
         else:
             map.reconnect_camera()
