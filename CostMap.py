@@ -21,7 +21,7 @@ class map_capture():
         self.height = self.video.get(cv2.CAP_PROP_FRAME_HEIGHT) # float
         self.rect_corners = np.array([[0,0],[0,0],[0,0],[0,0]])
 
-        self.position_list = [
+        self.position_list = [ {"Clear_Commands":1,},
                             {
                                 "pickup":"Red",
                                 "block_x":0,
@@ -43,7 +43,7 @@ class map_capture():
                                 "parking_x":0,
                                 "parking_y":0,
                             },
-                                                                {
+                            {
                                 "dropoff":"dropoff 1",
                                 "dropoff_x":0,
                                 "dropoff_y":0,
@@ -122,6 +122,7 @@ class map_capture():
                             "angle" : 0,
                             }
         self.position_list = [
+                            {"Clear_Commands":1,},
                             {
                                 "pickup":"Red",
                                 "block_x":0,
@@ -143,7 +144,7 @@ class map_capture():
                                 "parking_x":0,
                                 "parking_y":0,
                             },
-                                                                {
+                            {
                                 "dropoff":"dropoff 1",
                                 "dropoff_x":0,
                                 "dropoff_y":0,
@@ -565,7 +566,7 @@ class map_capture():
                     }
             transform_dict.update(update)
 
-            self.position_list = [
+            self.position_list = [ {"Clear_Commands":1,},
                             {
                                 "pickup":"Red",
                                 "block_x":0,
