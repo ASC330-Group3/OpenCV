@@ -236,7 +236,8 @@ class map_capture():
                     aruco_x_coor = (corners[i][0][0][0] + corners[i][0][1][0] + corners[i][0][2][0] + corners[i][0][3][0]) / 4
                     aruco_y_coor = (corners[i][0][0][1] + corners[i][0][1][1] + corners[i][0][2][1] + corners[i][0][3][1]) / 4
                     #convert arena coordinates to mm
-                    conversion_factor = (math.sqrt((abs(corners[i][0][0][0] - corners[i][0][1][0]))**2+(abs(corners[i][0][0][1] - corners[i][0][1][1]))**2))/80
+                    marker_dimension = 180
+                    conversion_factor = (math.sqrt((abs(corners[i][0][0][0] - corners[i][0][1][0]))**2+(abs(corners[i][0][0][1] - corners[i][0][1][1]))**2))/marker_dimension
                     #conversion_factor =0.21242645786248002#coor per mm = 4.7mm to a coor
                 
                     x_ref = (corners[i][0][0][0] - corners[i][0][1][0])
@@ -247,7 +248,7 @@ class map_capture():
                     z = math.atan2(y_ref,x_ref)
                     z = (-z)
 
-                    distance_to_box = 100*conversion_factor
+                    distance_to_box = 140*conversion_factor
                     angle_offset = -math.pi/2
                     box_centre_x,box_centre_y = self.__transform_coordinates(aruco_x_coor,aruco_y_coor,distance_to_box,z,angle_offset)
                     box_area = 80*(conversion_factor)
@@ -270,7 +271,8 @@ class map_capture():
                     aruco_x_coor = (corners[i][0][0][0] + corners[i][0][1][0] + corners[i][0][2][0] + corners[i][0][3][0]) / 4
                     aruco_y_coor = (corners[i][0][0][1] + corners[i][0][1][1] + corners[i][0][2][1] + corners[i][0][3][1]) / 4
                     #convert arena coordinates to mm
-                    conversion_factor = (math.sqrt((abs(corners[i][0][0][0] - corners[i][0][1][0]))**2+(abs(corners[i][0][0][1] - corners[i][0][1][1]))**2))/80
+                    marker_dimension = 180
+                    conversion_factor = (math.sqrt((abs(corners[i][0][0][0] - corners[i][0][1][0]))**2+(abs(corners[i][0][0][1] - corners[i][0][1][1]))**2))/marker_dimension
                     #conversion_factor =0.21242645786248002#coor per mm = 4.7mm to a coor
                 
                     x_ref = (corners[i][0][0][0] - corners[i][0][1][0])
@@ -281,7 +283,7 @@ class map_capture():
                     z = math.atan2(y_ref,x_ref)
                     z = (-z)
 
-                    distance_to_box = 100*conversion_factor
+                    distance_to_box = 140*conversion_factor
                     angle_offset = -math.pi/2
                     box_centre_x,box_centre_y = self.__transform_coordinates(aruco_x_coor,aruco_y_coor,distance_to_box,z,angle_offset)
                     box_area = 80*(conversion_factor)
@@ -304,7 +306,7 @@ class map_capture():
                     aruco_x_coor = (corners[i][0][0][0] + corners[i][0][1][0] + corners[i][0][2][0] + corners[i][0][3][0]) / 4
                     aruco_y_coor = (corners[i][0][0][1] + corners[i][0][1][1] + corners[i][0][2][1] + corners[i][0][3][1]) / 4
                     #convert arena coordinates to mm
-                    marker_dimension = 80;
+                    marker_dimension = 180
                     conversion_factor = (math.sqrt((abs(corners[i][0][0][0] - corners[i][0][1][0]))**2+(abs(corners[i][0][0][1] - corners[i][0][1][1]))**2))/marker_dimension
                     #conversion_factor =0.21242645786248002#coor per mm = 4.7mm to a coor
                 
@@ -316,7 +318,7 @@ class map_capture():
                     z = math.atan2(y_ref,x_ref)
                     z = (-z)
 
-                    distance_to_box = 100*conversion_factor
+                    distance_to_box = 140*conversion_factor
                     angle_offset = -math.pi/2
                     box_centre_x,box_centre_y = self.__transform_coordinates(aruco_x_coor,aruco_y_coor,distance_to_box,z,angle_offset)
                     box_area = 80*(conversion_factor)
@@ -615,7 +617,7 @@ class map_capture():
         self.video.release()
 
 if __name__ == '__main__':
-    map = map_capture(1)
+    map = map_capture(0)
 
     while 1:
         
