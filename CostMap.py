@@ -194,7 +194,7 @@ class map_capture():
         if np.all(ids is not None):
             for i in range(0,int(ids.size)):
 
-                if (ids[i][0]==0):
+                if (ids[i][0]==20):
                     rvec, tvec,_ = aruco.estimatePoseSingleMarkers(corners[i], 0.05, cameraMatrix, distCoeffs) #Estimate pose of each marker and return the values rvet and tvec---different from camera coefficients
                     (rvec-tvec).any() # get rid of that nasty numpy value array error
                     #aruco.drawAxis(self.aruco_frame, cameraMatrix, distCoeffs, rvec[0], tvec[0], 0.1) #Draw Axis
@@ -316,7 +316,7 @@ class map_capture():
                                 "parking_y":parking_y,
                             }
 
-                        self.position_list[0].update(update)
+                        self.position_list[1].update(update)
 
                 if(ids[i][0]==12):
                     rvec, tvec,_ = aruco.estimatePoseSingleMarkers(corners[i], 0.05, cameraMatrix, distCoeffs) #Estimate pose of each marker and return the values rvet and tvec---different from camera coefficients
@@ -357,7 +357,7 @@ class map_capture():
                                 "parking_y":parking_y,
                             }
 
-                        self.position_list[1].update(update)
+                        self.position_list[2].update(update)
 
                 if(ids[i][0]==13):
                     rvec, tvec,_ = aruco.estimatePoseSingleMarkers(corners[i], 0.05, cameraMatrix, distCoeffs) #Estimate pose of each marker and return the values rvet and tvec---different from camera coefficients
@@ -398,7 +398,7 @@ class map_capture():
                                 "parking_y":parking_y,
                             }
 
-                        self.position_list[2].update(update)
+                        self.position_list[3].update(update)
 
 
                 if(ids[i][0]==14):
@@ -438,7 +438,7 @@ class map_capture():
                             "parking_y":parking_y,
                             }
 
-                    self.position_list[3].update(update)
+                    self.position_list[4].update(update)
 
                 if(ids[i][0]==15):
                     rvec, tvec,_ = aruco.estimatePoseSingleMarkers(corners[i], 0.05, cameraMatrix, distCoeffs) #Estimate pose of each marker and return the values rvet and tvec---different from camera coefficients
@@ -477,7 +477,7 @@ class map_capture():
                             "parking_y":parking_y,
                             }
 
-                    self.position_list[4].update(update)
+                    self.position_list[5].update(update)
 
                 if(ids[i][0]==14):
                     rvec, tvec,_ = aruco.estimatePoseSingleMarkers(corners[i], 0.05, cameraMatrix, distCoeffs) #Estimate pose of each marker and return the values rvet and tvec---different from camera coefficients
@@ -515,7 +515,7 @@ class map_capture():
                             "parking_y":parking_y,
                             }
 
-                    self.position_list[5].update(update)
+                    self.position_list[6].update(update)
 
 
                 if(ids[i][0]==20):
@@ -551,7 +551,7 @@ class map_capture():
                             
                             }
 
-                    self.get_position_list[6].update(update)
+                    self.get_position_list[7].update(update)
 
 
         else:
