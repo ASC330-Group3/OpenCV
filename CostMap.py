@@ -16,9 +16,16 @@ class map_capture():
     def __init__(self,camera_option):
         self.camera_option = camera_option
         self.video = cv2.VideoCapture(self.camera_option)
+        
+        self.video.set(cv2.CAP_PROP_AUTO_EXPOSURE,0.75)
+      
+        self.video.set(cv2.CAP_PROP_EXPOSURE,-7)
+        
         self.video.set(cv2.CAP_PROP_AUTOFOCUS, 0)
         self.width = self.video.get(cv2.CAP_PROP_FRAME_WIDTH)   # float
         self.height = self.video.get(cv2.CAP_PROP_FRAME_HEIGHT) # float
+        
+        
         self.rect_corners = np.array([[0,0],[0,0],[0,0],[0,0]])
 
         self.position_list = [ {"Clear_Commands":1,},
@@ -845,7 +852,7 @@ if __name__ == '__main__':
             x = map.get_position_list()
             
             print(map.get_transform())
-            print(x[0])
+            
             map.get_new_frame()
             map.show_frame()
             cv2.imshow("webcam feed",frame)
