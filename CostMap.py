@@ -21,7 +21,55 @@ class map_capture():
         self.height = self.video.get(cv2.CAP_PROP_FRAME_HEIGHT) # float
         self.rect_corners = np.array([[0,0],[0,0],[0,0],[0,0]])
 
-        self.position_list = []
+        self.position_list = [
+                            {
+                                "pickup":"Red",
+                                "block_x":0,
+                                "block_y":0,
+                                "parking_x":0,
+                                "parking_y":0,
+                            },
+                            {
+                                "pickup":"Green",
+                                "block_x":0,
+                                "block_y":0,
+                                "parking_x":0,
+                                "parking_y":0,
+                            },
+                            {
+                                "pickup":"Blue",
+                                "block_x":0,
+                                "block_y":0,
+                                "parking_x":0,
+                                "parking_y":0,
+                            },
+                                                                {
+                                "dropoff":"dropoff 1",
+                                "dropoff_x":0,
+                                "dropoff_y":0,
+                                "parking_x":0,
+                                "parking_y":0,
+                            },
+                            {
+                                "dropoff":"dropoff 2",
+                                "dropoff_x":0,
+                                "dropoff_y":0,
+                                "parking_x":0,
+                                "parking_y":0,
+                            },
+                            {
+                                "dropoff":"dropoff 3",
+                                "dropoff_x":0,
+                                "dropoff_y":0,
+                                "parking_x":0,
+                                "parking_y":0,
+                            },
+                            {
+                                "arm":"arm",
+                                "coor_x":0,
+                                "coor_y":0,
+                            },
+                ]
         ret, self.aruco_frame = self.video.read()
         #self.smooth_plat_coor_x = [0]
         #self.smooth_plat_coor_y = [0]
@@ -784,7 +832,7 @@ class map_capture():
         self.video.release()
 
 if __name__ == '__main__':
-    map = map_capture(0)
+    map = map_capture(1)
 
     while 1:
 
@@ -793,8 +841,10 @@ if __name__ == '__main__':
 
         ret, frame = map.get_webcam_feed()
         if (ret==1):
-            print(map.get_position_list())
+            x = map.get_position_list()
+            
             print(map.get_transform())
+            print(x[0])
             map.get_new_frame()
             map.show_frame()
             cv2.imshow("webcam feed",frame)
