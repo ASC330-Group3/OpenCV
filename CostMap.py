@@ -212,7 +212,8 @@ class map_capture():
                     if (abs(x_ref) < 1e-6):
                         x_ref=0.0000001
 
-                    z = math.atan2(y_ref,x_ref)
+                    z = math.atan2(y_ref,x_ref) - (math.pi)
+                    
                     z = (-z)
 
                     distance_aruco_to_platform_centre = 120*scaling_factor#math.sqrt((((370/2)-distance_to_edge)*scaling_factor)**2 + (((420/2)-distance_to_edge)*scaling_factor)**2)
