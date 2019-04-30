@@ -7,7 +7,7 @@ Created on Wed Feb 27 15:04:42 2019
 
 import cv2
 import cv2.aruco as aruco
-import imutils
+
 import math
 import numpy as np
 import time
