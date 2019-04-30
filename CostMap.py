@@ -179,7 +179,8 @@ class map_capture():
         cam_feed = self.aruco_frame.copy()
 
         gray = cv2.cvtColor(self.aruco_frame, cv2.COLOR_BGR2GRAY)
-        retval, gray = cv2.threshold(gray,250,255,cv2.THRESH_BINARY)
+        retval, gray = cv2.threshold(gray,100,255,cv2.THRESH_BINARY)
+        cv2.imshow("the",gray)
 
         aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_250)
         parameters =  aruco.DetectorParameters_create()
