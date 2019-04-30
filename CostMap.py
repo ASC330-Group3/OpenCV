@@ -86,6 +86,28 @@ class map_capture():
 
             #self.video.release()
         else:
+            
+            gray = cv2.cvtColor(webcam_feed, cv2.COLOR_BGR2GRAY)
+            #blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+            thresh = cv2.threshold(gray, 250, 255, cv2.THRESH_BINARY)[1]
+            #cv2.imshow("thresh", thresh)
+            # find contours in the thresholded image and initialize the
+            # shape detector
+            cnts, hierarchy = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+           
+            triangle_found = 0
+            # loop over the contours
+            for c in cnts:
+                point_x,point_y,angle = self.detect_triangle(c)
+                #cv2.drawContours(self.aruco_frame, [c], -1, (0, 255, 0), 2)
+                #cv2.circle(self.aruco_frame,(point_x,point_y),5,(0,0,255),-1)
+                
+                #self.detect_triangle(c)
+                if (point_x != -1):
+                    
+                    cv2.drawContours(webcam_feed, [c], -1, (0, 255, 0), 2)
+            
+            
             aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_250)
             parameters =  aruco.DetectorParameters_create()
 
