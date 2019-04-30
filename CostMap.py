@@ -16,16 +16,9 @@ class map_capture():
     def __init__(self,camera_option):
         self.camera_option = camera_option
         self.video = cv2.VideoCapture(self.camera_option)
-        
-        self.video.set(cv2.CAP_PROP_AUTO_EXPOSURE,0.75)
-      
-        self.video.set(cv2.CAP_PROP_EXPOSURE,-7)
-        
         self.video.set(cv2.CAP_PROP_AUTOFOCUS, 0)
         self.width = self.video.get(cv2.CAP_PROP_FRAME_WIDTH)   # float
         self.height = self.video.get(cv2.CAP_PROP_FRAME_HEIGHT) # float
-        
-        
         self.rect_corners = np.array([[0,0],[0,0],[0,0],[0,0]])
 
         self.position_list = [ {"Clear_Commands":1,},
@@ -277,7 +270,7 @@ class map_capture():
                             
                             }
 
-                    self.get_position_list[6].update(update)
+                    self.position_list[7].update(update)
                     
 
 
@@ -431,9 +424,7 @@ class map_capture():
                     box_centre_x,box_centre_y = self.__transform_coordinates(aruco_x_coor,aruco_y_coor,distance_to_box,z,angle_offset)
 
                     distance_to_parking = 280*conversion_factor
-                    parking_x,parking_y =  self.__transform_coordinates(blue_x,blue_y,distance_to_parking,z,angle_offset)
-
-                    blue_y = self.height - blue_y
+                    parking_x,parking_y =  self.__transform_coordinates(box_centre_x,box_centre_y,distance_to_parking,z,angle_offset)
                     parking_y = self.height - parking_y
 
 
@@ -470,9 +461,9 @@ class map_capture():
                     box_centre_x,box_centre_y = self.__transform_coordinates(aruco_x_coor,aruco_y_coor,distance_to_box,z,angle_offset)
 
                     distance_to_parking = 280*conversion_factor
-                    parking_x,parking_y =  self.__transform_coordinates(blue_x,blue_y,distance_to_parking,z,angle_offset)
+                    parking_x,parking_y =  self.__transform_coordinates(box_centre_x,box_centre_y,distance_to_parking,z,angle_offset)
 
-                    blue_y = self.height - blue_y
+                    
                     parking_y = self.height - parking_y
 
 
@@ -509,9 +500,9 @@ class map_capture():
                     box_centre_x,box_centre_y = self.__transform_coordinates(aruco_x_coor,aruco_y_coor,distance_to_box,z,angle_offset)
 
                     distance_to_parking = 280*conversion_factor
-                    parking_x,parking_y =  self.__transform_coordinates(blue_x,blue_y,distance_to_parking,z,angle_offset)
+                    parking_x,parking_y =  self.__transform_coordinates(box_centre_x,box_centre_y,distance_to_parking,z,angle_offset)
 
-                    blue_y = self.height - blue_y
+                    
                     parking_y = self.height - parking_y
 
                     update ={
@@ -558,7 +549,7 @@ class map_capture():
                             
                             }
 
-                    self.get_position_list[7].update(update)
+                    self.position_list[7].update(update)
 
 
         else:
@@ -852,7 +843,7 @@ if __name__ == '__main__':
             x = map.get_position_list()
             
             print(map.get_transform())
-            
+            print(x[6])
             map.get_new_frame()
             map.show_frame()
             cv2.imshow("webcam feed",frame)
