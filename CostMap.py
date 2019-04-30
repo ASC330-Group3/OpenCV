@@ -291,7 +291,7 @@ class map_capture():
 
                 #The costmap image is flipped along the x -axis for screen coordinates:
                 point_y = self.height - point_y
-                
+                angle = -angle
                 update = {"state" : 1,
                             "x" : point_x,
                             "y" : point_y,
