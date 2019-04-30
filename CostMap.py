@@ -180,7 +180,7 @@ class map_capture():
 
         gray = cv2.cvtColor(self.aruco_frame, cv2.COLOR_BGR2GRAY)
         retval, gray = cv2.threshold(gray,100,255,cv2.THRESH_BINARY)
-        cv2.imshow("the",gray)
+      
 
         aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_250)
         parameters =  aruco.DetectorParameters_create()
@@ -221,7 +221,7 @@ class map_capture():
                     y_offset = 0;
                     platform_center_x = int(aruco_x_coor + distance_aruco_to_platform_centre*math.cos(z-angle_offset))
                     platform_center_y = int((aruco_y_coor + y_offset) - distance_aruco_to_platform_centre*math.sin(z-angle_offset))
-                    cv2.circle(self.aruco_frame,(platform_center_x,platform_center_y), 1, (0,0,255), -1)
+                    #cv2.circle(self.aruco_frame,(platform_center_x,platform_center_y), 1, (0,0,255), -1)
 
 
                     #Draw rotated rectangle
@@ -260,7 +260,7 @@ class map_capture():
                     angle_offset = 0
                     arm_base_x,arm_base_y = self.__transform_coordinates(aruco_x_coor,aruco_y_coor,distance_to_box,z,angle_offset)
 
-                    cv2.circle(self.aruco_frame,(arm_base_x,arm_base_y),5,(255,255,255),-1)
+                    #cv2.circle(self.aruco_frame,(arm_base_x,arm_base_y),5,(255,255,255),-1)
 
                     arm_base_y = self.height - arm_base_y
 
@@ -539,7 +539,7 @@ class map_capture():
                     angle_offset = 0
                     arm_base_x,arm_base_y = self.__transform_coordinates(aruco_x_coor,aruco_y_coor,distance_to_box,z,angle_offset)
 
-                    cv2.circle(self.aruco_frame,(arm_base_x,arm_base_y),5,(255,255,255),-1)
+                    #cv2.circle(self.aruco_frame,(arm_base_x,arm_base_y),5,(255,255,255),-1)
 
                     arm_base_y = self.height - arm_base_y
 
@@ -663,7 +663,7 @@ class map_capture():
             # calculate x,y coordinate of center
             cX = int(M["m10"] / M["m00"])
             cY = int(M["m01"] / M["m00"])
-            cv2.circle(output,(cX,cY),5,(0,255,0),-1)
+            #cv2.circle(output,(cX,cY),5,(0,255,0),-1)
         #cv2.imshow("output",img)
             return (cX,cY)
 
@@ -738,7 +738,7 @@ class map_capture():
             # calculate x,y coordinate of center
             cX = int(M["m10"] / M["m00"])
             cY = int(M["m01"] / M["m00"])
-            cv2.circle(img,(cX,cY),5,(0,255,0),-1)
+            #cv2.circle(img,(cX,cY),5,(0,255,0),-1)
 
         #cv2.imshow("output",img)
         return (cX,cY)
