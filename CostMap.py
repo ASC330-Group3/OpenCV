@@ -257,8 +257,8 @@ class map_capture():
         #cv2.imshow("thresh", thresh)
         # find contours in the thresholded image and initialize the
         # shape detector
-        cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
-        cnts = imutils.grab_contours(cnts)
+        cnts, hierarchy = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+       
         triangle_found = 0
         # loop over the contours
         for c in cnts:
