@@ -7,7 +7,7 @@ Created on Wed Feb 27 15:04:42 2019
 
 import cv2
 import cv2.aruco as aruco
-
+import imutils
 import math
 import numpy as np
 import time
@@ -113,6 +113,67 @@ class map_capture():
     def get_position_list(self):
         return (self.position_list)
 
+    def detect_triangle(self,c):
+        # initialize the shape name and approximate the contour
+         # initialize the shape name and approximate the contour
+        shape = "unidentified"
+        peri = cv2.arcLength(c, True)
+        approx = cv2.approxPolyDP(c, 0.04 * peri, True)
+        conversion_factor =0.213
+        act_hypot_length = 160
+        act_tri_height = 80
+        act_area = 430
+        angle=0
+        point=0
+        # if the shape is a triangle, it will have 3 vertices
+        
+        if len(approx) == 3:          
+            (x,y), (w, h), angle = cv2.minAreaRect(approx)
+            #ar = w / float(h)
+            
+            area = cv2.contourArea(c)
+         
+            if (area >= act_area*0.8) and (area <= act_area*1.2):
+                
+                side_1 = math.sqrt((approx[0][0][0]-approx[1][0][0])**2+(approx[0][0][1]-approx[1][0][1])**2)/conversion_factor
+                side_2 = math.sqrt((approx[0][0][0]-approx[2][0][0])**2+(approx[0][0][1]-approx[2][0][1])**2)/conversion_factor
+                side_3 = math.sqrt((approx[1][0][0]-approx[2][0][0])**2+(approx[1][0][1]-approx[2][0][1])**2)/conversion_factor
+                list_sides = [side_1,side_2,side_3]
+                hypot = max(list_sides)
+                idx = list_sides.index(hypot)
+                if(idx == 0):
+                    point = 2
+                    mid_point_x = (approx[0][0][0]+approx[1][0][0])/2
+                    mid_point_y = (approx[0][0][1]+approx[1][0][1])/2
+                elif(idx== 1):
+                    point = 1
+                    mid_point_x = (approx[0][0][0]+approx[2][0][0])/2
+                    mid_point_y = (approx[0][0][1]+approx[2][0][1])/2
+                else:
+                    point = 0
+                    mid_point_x = (approx[2][0][0]+approx[1][0][0])/2
+                    mid_point_y = (approx[2][0][1]+approx[1][0][1])/2
+                    
+                #cv2.circle(self.aruco_frame,(approx[point][0][0],approx[point][0][1]),5,(0,0,255),-1)
+                #cv2.circle(self.aruco_frame,(int(mid_point_x),int(mid_point_y)),5,(0,0,255),-1)
+                
+                opp = (approx[point][0][1]-mid_point_y)
+                adj = (approx[point][0][0]-mid_point_x)
+                if (abs(adj) < 1e-6):
+                        adj=0.0000001
+                angle = math.atan2(opp,adj)
+                print(angle*(180/math.pi))
+#                    print(side_1,side_2,side_3)
+                
+                return (approx[point][0][0],approx[point][0][1],angle)
+          
+        return(-1,-1,-1)
+        # return the name of the shape
+           
+
+
+
+
     def get_transform(self):
 
         transform_dict = {
@@ -177,11 +238,7 @@ class map_capture():
             return (transform_dict)
 
         cam_feed = self.aruco_frame.copy()
-
-        gray = cv2.cvtColor(self.aruco_frame, cv2.COLOR_BGR2GRAY)
-        retval, gray = cv2.threshold(gray,100,255,cv2.THRESH_BINARY)
-      
-
+  
         aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_250)
         parameters =  aruco.DetectorParameters_create()
 
@@ -192,9 +249,67 @@ class map_capture():
         self.aruco_frame = aruco.drawDetectedMarkers(self.aruco_frame, corners,ids,(255,255,0))
         cameraMatrix = np.array([[1.3953673275755928e+03, 0, 9.9285445205853750e+02], [0,1.3880458574466945e+03, 5.3905119245877574e+02],[ 0., 0., 1.]])
         distCoeffs = np.array([5.7392039180004371e-02, -3.4983260309560962e-02,-2.5933903577082485e-03, 3.4269688895033714e-03,-1.8891849772162170e-01 ])
+        
+        
+        gray = cv2.cvtColor(cam_feed, cv2.COLOR_BGR2GRAY)
+        #blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+        thresh = cv2.threshold(gray, 250, 255, cv2.THRESH_BINARY)[1]
+        #cv2.imshow("thresh", thresh)
+        # find contours in the thresholded image and initialize the
+        # shape detector
+        cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+        cnts = imutils.grab_contours(cnts)
+        triangle_found = 0
+        # loop over the contours
+        for c in cnts:
+            point_x,point_y,angle = self.detect_triangle(c)
+            #cv2.drawContours(self.aruco_frame, [c], -1, (0, 255, 0), 2)
+            #cv2.circle(self.aruco_frame,(point_x,point_y),5,(0,0,255),-1)
+            
+            #self.detect_triangle(c)
+            if (point_x != -1):
+                
+                cv2.drawContours(self.aruco_frame, [c], -1, (0, 255, 0), 2)
+#                
+                triangle_found = 1
+                scaling_factor = 0.21242645786248002
+                x0 = point_x
+                y0 = point_y
+                height = 500*scaling_factor
+                width = 500*scaling_factor
+                
+                b = math.cos(angle) * 0.5
+                a = math.sin(angle) * 0.5
+                pt0 = (int(x0 - a * height - b * width), int(y0 + b * height - a * width))
+                pt1 = (int(x0 + a * height - b * width), int(y0 - b * height - a * width))
+                pt2 = (int(2 * x0 - pt0[0]), int(2 * y0 - pt0[1]))
+                pt3 = (int(2 * x0 - pt1[0]), int(2 * y0 - pt1[1]))
+
+                self.rect_corners = np.array([[pt0],[pt1],[pt2],[pt3]])
+
+                cv2.fillPoly(self.aruco_frame,[self.rect_corners],(0,0,0))
+
+                #The costmap image is flipped along the x -axis for screen coordinates:
+                point_y = self.height - point_y
+                
+                update = {"state" : 1,
+                            "x" : point_x,
+                            "y" : point_y,
+                            "angle" : angle}
+                transform_dict.update(update)
+                break
+            
+                
+        if (triangle_found ==0):
+            
+            cv2.fillPoly(self.aruco_frame,[self.rect_corners],(0,0,0))
+                
+        
         if np.all(ids is not None):
             for i in range(0,int(ids.size)):
-
+                
+                
+                
                 if (ids[i][0]==20):
                     rvec, tvec,_ = aruco.estimatePoseSingleMarkers(corners[i], 0.05, cameraMatrix, distCoeffs) #Estimate pose of each marker and return the values rvet and tvec---different from camera coefficients
                     (rvec-tvec).any() # get rid of that nasty numpy value array error
@@ -203,56 +318,14 @@ class map_capture():
                     aruco_x_coor = (corners[i][0][0][0] + corners[i][0][1][0] + corners[i][0][2][0] + corners[i][0][3][0]) / 4
                     aruco_y_coor = (corners[i][0][0][1] + corners[i][0][1][1] + corners[i][0][2][1] + corners[i][0][3][1]) / 4
 
-                    #convert arena coordinates to mm
-                    #scaling_factor = (math.sqrt((abs(corners[i][0][0][0] - corners[i][0][1][0]))**2+(abs(corners[i][0][0][1] - corners[i][0][1][1]))**2))/aruco_dimensions
-                    scaling_factor = 0.21242645786248002
-
+                    
                     x_ref = (corners[i][0][0][0] - corners[i][0][1][0])
                     y_ref = (corners[i][0][0][1] - corners[i][0][1][1])
                     if (abs(x_ref) < 1e-6):
                         x_ref=0.0000001
 
-                    z = math.atan2(y_ref,x_ref) - (math.pi)
-                    
+                    z = math.atan2(y_ref,x_ref)
                     z = (-z)
-
-                    distance_aruco_to_platform_centre = 120*scaling_factor#math.sqrt((((370/2)-distance_to_edge)*scaling_factor)**2 + (((420/2)-distance_to_edge)*scaling_factor)**2)
-                    angle_offset = 0
-
-                    y_offset = 0;
-                    platform_center_x = int(aruco_x_coor + distance_aruco_to_platform_centre*math.cos(z-angle_offset))
-                    platform_center_y = int((aruco_y_coor + y_offset) - distance_aruco_to_platform_centre*math.sin(z-angle_offset))
-                    #cv2.circle(self.aruco_frame,(platform_center_x,platform_center_y), 1, (0,0,255), -1)
-
-
-                    #Draw rotated rectangle
-                    angle = -z#angle_offset
-                    x0 = platform_center_x
-                    y0 = platform_center_y
-                    height = 410*scaling_factor
-                    width = 420*scaling_factor
-                    b = math.cos(angle) * 0.9
-                    a = math.sin(angle) * 0.9
-                    pt0 = (int(x0 - a * height - b * width), int(y0 + b * height - a * width))
-                    pt1 = (int(x0 + a * height - b * width), int(y0 - b * height - a * width))
-                    pt2 = (int(2 * x0 - pt0[0]), int(2 * y0 - pt0[1]))
-                    pt3 = (int(2 * x0 - pt1[0]), int(2 * y0 - pt1[1]))
-
-                    self.rect_corners = np.array([[pt0],[pt1],[pt2],[pt3]])
-
-                    cv2.fillPoly(self.aruco_frame,[self.rect_corners],(0,0,0))
-
-                    #The costmap image is flipped along the x -axis for screen coordinates:
-                    platform_center_y = self.height - platform_center_y
-
-
-                    update = {"state" : 1,
-                            "x" : platform_center_x,
-                            "y" : platform_center_y,
-                            "angle" : z}
-
-                    transform_dict.update(update)
-                    
                     
                     #Arm Part-------------------------------------------------------------------------------------
                     marker_dimension = 180
@@ -274,10 +347,6 @@ class map_capture():
 
                     self.position_list[7].update(update)
                     
-
-
-                else:
-                    cv2.fillPoly(self.aruco_frame,[self.rect_corners],(0,0,0))
 
                 if(ids[i][0]==11):
                     rvec, tvec,_ = aruco.estimatePoseSingleMarkers(corners[i], 0.05, cameraMatrix, distCoeffs) #Estimate pose of each marker and return the values rvet and tvec---different from camera coefficients
@@ -554,8 +623,8 @@ class map_capture():
                     self.position_list[7].update(update)
 
 
-        else:
-            cv2.fillPoly(self.aruco_frame,[self.rect_corners],(0,0,0))
+       
+        
 
 
             update = {
@@ -848,7 +917,7 @@ if __name__ == '__main__':
             print(x[6])
             map.get_new_frame()
             map.show_frame()
-            cv2.imshow("webcam feed",frame)
+            #cv2.imshow("webcam feed",frame)
             #print(map.arm_pickup_coor(2))
         else:
             map.reconnect_camera()
